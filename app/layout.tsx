@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     description: "This is bbw9n.io",
     openGraph: {
         title: "bbw9n.io",
-        description: "This is bbw9n.io.",
+        description: "just my jibber-jabber",
         url: baseUrl,
         siteName: "bbw9n.io",
         locale: "en_US",

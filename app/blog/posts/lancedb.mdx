@@ -529,6 +529,16 @@ Because Lance never mutates existing data files, time travel is metadata only ju
 
 **Unified storage**: LanceDB eliminates the need for a separate object store + vector DB + metadata store. One Lance dataset can hold raw images, embeddings, and structured metadata simultaneously. For teams running RAG pipelines or multimodal search, this dramatically simplifies architecture.
 
+<figure>
+  <img src="/images/multimodal-lakehouse.png" alt="Unified storage" />
+  <figcaption>
+    <a href="https://lancedb.com/blog/multimodal-lakehouse/#centralized-multimodal-data-management" target="_blank" rel="noopener noreferrer">
+      Source: Multimodal Lakehouse
+    </a>
+  </figcaption>
+</figure>
+
+
 **Embedded, serverless deployment**: LanceDB has no server process. It embeds directly in Python or Rust, and its storage layer points at a local directory, S3, GCS, or Azure Blob. This makes it trivial to deploy in Lambda functions, Jupyter notebooks, or edge devices.
 
 **Disk based indexing = economical scaling**: Because indexes live on NVMe/object storage rather than RAM, you can index datasets far larger than available memory. A machine with 32 GB RAM can comfortably serve an IVF-PQ index over 100M+ vectors.
