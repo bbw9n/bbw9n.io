@@ -1,9 +1,8 @@
 ---
-title: 'LanceDB & the Lance Format'
-publishedAt: '2025-04-08'
-summary: 'Explore the lancedb architecture, file format, indexing internals, and real-world trade-offs of LanceDB — the columnar vector database built for the multimodal AI era.'
+title: "LanceDB & the Lance Format"
+publishedAt: "2025-04-08"
+summary: "Explore the lancedb architecture, file format, indexing internals, and real-world trade-offs of LanceDB — the columnar vector database built for the multimodal AI era."
 ---
-
 
 ## Table of Contents
 
@@ -34,6 +33,7 @@ Lance is benchmarked at **~100× faster random access** than Parquet. It achieve
 **B) Multimodal & Wide Data**
 
 Traditional databases store strings and floats. ML workloads store:
+
 - High-dimensional embeddings (e.g., 1536-float CLIP vectors ≈ 6 KiB per row)
 - Raw image bytes (100 KB–10 MB per row)
 - 3D point clouds, audio waveforms, video frames
@@ -60,6 +60,7 @@ Parquet File
 ```
 
 Key Parquet pain points:
+
 - **Row groups** create a "one size fits none" problem for mixed workloads
 - **Encodings can't access column/file metadata**, forcing redundant data (e.g., dictionaries repeated per row group instead of stored once)
 - **Page-level access granularity** means reading one value reads an entire page
@@ -70,25 +71,25 @@ Key Parquet pain points:
 
 ## 2. Lance vs. Parquet: Side-by-Side
 
-| Feature | Apache Parquet | Lance (v2.1) |
-|---|---|---|
-| **Primary Design Goal** | OLAP analytics, ETL | ML/AI workloads, ANN search, multimodal |
-| **Access Pattern** | Sequential scan | Both sequential scan and random access |
-| **Row Groups** | Yes (fundamental unit, 64K–128K rows typical) | No (eliminated entirely in v2) |
-| **Random Access Speed** | Slow (must decode entire page) | ~100× faster; direct offset calculation |
-| **Compression** | Aggressive (Snappy, Zstd, Gzip) | Structural + compressive encodings (v2.1); avoids sacrificing random access |
-| **Embedding/Tensor Storage** | Awkward (requires fixed-size list tricks) | First-class; wide columns handled natively |
-| **Versioning** | None (external tooling, e.g., Delta Lake) | Built-in, zero-copy versioning (Git-like) |
-| **Vector Index** | None | IVF-PQ, IVF-HNSW-PQ, IVF-HNSW-SQ, binary |
-| **Full-Text Search** | None | Yes (inverted index built-in) |
-| **Deletions** | Rewrite entire file | Soft-delete via deletion file per fragment |
-| **Schema Evolution** | Partial support | Full; tracked per version |
-| **Encoding Extensibility** | Hard (requires patching readers) | Pluggable; encodings are self-describing |
-| **Ecosystem** | Pandas, Spark, Hive, Trino, Athena, ... | Arrow, DuckDB, Pandas, PyTorch, HuggingFace |
-| **Metadata on Wide Schemas** | Full schema loaded always | Lazy; only requested columns' metadata loaded |
-| **Null Handling** | Some edge cases lost (old v1 Lance too) | Explicit null tracking (v2) |
-| **Storage Format** | Single file per partition | Fragments (data files + optional deletion file) + manifest |
-| **Best For** | Data warehousing, BI dashboards, ETL | Vector search, RAG, ML training, feature stores |
+| Feature                      | Apache Parquet                                | Lance (v2.1)                                                                |
+| ---------------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| **Primary Design Goal**      | OLAP analytics, ETL                           | ML/AI workloads, ANN search, multimodal                                     |
+| **Access Pattern**           | Sequential scan                               | Both sequential scan and random access                                      |
+| **Row Groups**               | Yes (fundamental unit, 64K–128K rows typical) | No (eliminated entirely in v2)                                              |
+| **Random Access Speed**      | Slow (must decode entire page)                | ~100× faster; direct offset calculation                                     |
+| **Compression**              | Aggressive (Snappy, Zstd, Gzip)               | Structural + compressive encodings (v2.1); avoids sacrificing random access |
+| **Embedding/Tensor Storage** | Awkward (requires fixed-size list tricks)     | First-class; wide columns handled natively                                  |
+| **Versioning**               | None (external tooling, e.g., Delta Lake)     | Built-in, zero-copy versioning (Git-like)                                   |
+| **Vector Index**             | None                                          | IVF-PQ, IVF-HNSW-PQ, IVF-HNSW-SQ, binary                                    |
+| **Full-Text Search**         | None                                          | Yes (inverted index built-in)                                               |
+| **Deletions**                | Rewrite entire file                           | Soft-delete via deletion file per fragment                                  |
+| **Schema Evolution**         | Partial support                               | Full; tracked per version                                                   |
+| **Encoding Extensibility**   | Hard (requires patching readers)              | Pluggable; encodings are self-describing                                    |
+| **Ecosystem**                | Pandas, Spark, Hive, Trino, Athena, ...       | Arrow, DuckDB, Pandas, PyTorch, HuggingFace                                 |
+| **Metadata on Wide Schemas** | Full schema loaded always                     | Lazy; only requested columns' metadata loaded                               |
+| **Null Handling**            | Some edge cases lost (old v1 Lance too)       | Explicit null tracking (v2)                                                 |
+| **Storage Format**           | Single file per partition                     | Fragments (data files + optional deletion file) + manifest                  |
+| **Best For**                 | Data warehousing, BI dashboards, ETL          | Vector search, RAG, ML training, feature stores                             |
 
 ---
 
@@ -166,8 +167,8 @@ For fixed-width types like `int64` or `float32`, the offset can even be **calcul
 
 A key innovation in v2.1 is separating two previously conflated concerns:
 
-- **Structural encoding**: *How* an array is split into buffers. For example, a list column is split into an offsets buffer and a values buffer. This must be understood to perform slicing/random access.
-- **Compressive encoding**: *How* each buffer's bytes are compressed (Zstd, BitPack, Delta, RLE, etc.). This is applied after structural encoding and does not affect sliceability.
+- **Structural encoding**: _How_ an array is split into buffers. For example, a list column is split into an offsets buffer and a values buffer. This must be understood to perform slicing/random access.
+- **Compressive encoding**: _How_ each buffer's bytes are compressed (Zstd, BitPack, Delta, RLE, etc.). This is applied after structural encoding and does not affect sliceability.
 
 ```
 Array  →  [Structural Encoding]  →  Buffers  →  [Compressive Encoding]  →  Compressed Buffers
@@ -177,7 +178,7 @@ Array  →  [Structural Encoding]  →  Buffers  →  [Compressive Encoding]  �
             for random access                       understand data shape
 ```
 
-This separation is what allows Lance v2.1 to have both compression *and* fast random access — the structural layer handles slicing independently of whatever compression is applied beneath.
+This separation is what allows Lance v2.1 to have both compression _and_ fast random access — the structural layer handles slicing independently of whatever compression is applied beneath.
 
 ---
 
@@ -294,12 +295,12 @@ results = table.search(query_vector) \
     .to_pandas()
 ```
 
-| Parameter | Trade-off |
-|---|---|
-| `num_partitions` ↑ | Smaller partitions → faster per-partition scan, but need higher `nprobes` for same recall |
-| `num_sub_vectors` ↑ | Better PQ approximation (higher recall), larger index on disk |
-| `nprobes` ↑ | More partitions searched → higher recall, higher latency |
-| `refine_factor` ↑ | More exact reranking → higher recall, slightly higher latency |
+| Parameter           | Trade-off                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `num_partitions` ↑  | Smaller partitions → faster per-partition scan, but need higher `nprobes` for same recall |
+| `num_sub_vectors` ↑ | Better PQ approximation (higher recall), larger index on disk                             |
+| `nprobes` ↑         | More partitions searched → higher recall, higher latency                                  |
+| `refine_factor` ↑   | More exact reranking → higher recall, slightly higher latency                             |
 
 ---
 
@@ -333,6 +334,7 @@ table = db.create_table("documents", schema=schema)
 ```
 
 **What happens on disk:**
+
 ```
 rag_db/
 └── documents.lance/
@@ -357,6 +359,7 @@ table.add(data)
 ```
 
 **What happens on disk:**
+
 ```
 rag_db/documents.lance/
 ├── _versions/
@@ -368,6 +371,7 @@ rag_db/documents.lance/
 ```
 
 Internally, the write path:
+
 1. Serializes the batch as an Arrow RecordBatch.
 2. Encodes each column with the selected structural + compressive encoding.
 3. Writes column buffers contiguously to `data_0.lance`.
@@ -439,6 +443,7 @@ df = table.to_pandas(columns=["id", "text"])
 ```
 
 Read path:
+
 1. Load the latest manifest (cached).
 2. For each fragment in the manifest:
    - Open `data_0.lance`.
@@ -587,16 +592,16 @@ LanceDB with IVF-HNSW-PQ can serve billion-scale ANN search from NVMe-backed clo
 
 ### 6.4 When to Choose LanceDB vs. Alternatives
 
-| Scenario | Recommendation |
-|---|---|
-| Small RAG prototype, single developer | LanceDB (embedded, zero ops) |
-| Production RAG, team of engineers | LanceDB Cloud or Qdrant/Weaviate |
-| ML training data pipeline | LanceDB + PyTorch DataLoader |
-| High-write, real-time feature store | Redis or Cassandra + separate vector DB |
-| Pure OLAP analytics | DuckDB + Parquet |
-| Billion-scale search, strict latency SLAs | Milvus, Qdrant (in-memory HNSW) |
-| Billion-scale search, cost-optimized | LanceDB on NVMe-backed instances |
-| Multimodal (image + text + vector) in one store | LanceDB (unique strength) |
+| Scenario                                        | Recommendation                          |
+| ----------------------------------------------- | --------------------------------------- |
+| Small RAG prototype, single developer           | LanceDB (embedded, zero ops)            |
+| Production RAG, team of engineers               | LanceDB Cloud or Qdrant/Weaviate        |
+| ML training data pipeline                       | LanceDB + PyTorch DataLoader            |
+| High-write, real-time feature store             | Redis or Cassandra + separate vector DB |
+| Pure OLAP analytics                             | DuckDB + Parquet                        |
+| Billion-scale search, strict latency SLAs       | Milvus, Qdrant (in-memory HNSW)         |
+| Billion-scale search, cost-optimized            | LanceDB on NVMe-backed instances        |
+| Multimodal (image + text + vector) in one store | LanceDB (unique strength)               |
 
 ---
 
@@ -612,4 +617,4 @@ The project's trajectory (the Lance file format has a published research paper, 
 
 ---
 
-*Code examples use `lancedb>=0.8` and `pylance>=0.12`. API details may vary across versions.*
+_Code examples use `lancedb>=0.8` and `pylance>=0.12`. API details may vary across versions._
