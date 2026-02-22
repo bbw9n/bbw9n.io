@@ -4,16 +4,6 @@ publishedAt: "2025-04-08"
 summary: "Explore the lancedb architecture, file format, indexing internals, and real world trade-offs of LanceDB the columnar vector database built for the multimodal AI era."
 ---
 
-# Table of Contents
-
-1. [Why a New File Format?](#1-why-a-new-file-format)
-2. [Lance vs. Parquet: Side-by-Side](#2-lance-vs-parquet-side-by-side)
-3. [Lance File Layout & Random Access Internals](#3-lance-file-layout--random-access-internals)
-4. [Index Internals: From Memory to Disk](#4-index-internals-from-memory-to-disk)
-5. [Read & Write Paths with Concrete Examples](#5-read--write-paths-with-concrete-examples)
-6. [Real World Use Cases](#6-real-world-use-cases)
-7. [Conclusion](#7-conclusion)
-
 # 1. Why a New File Format?
 
 Apache Parquet has been the undisputed king of analytical columnar storage for over a decade. So why did the LanceDB team invest years building Lance from scratch?

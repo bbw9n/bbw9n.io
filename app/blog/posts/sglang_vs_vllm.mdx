@@ -4,19 +4,7 @@ publishedAt: "2026-01-08"
 summary: "A deep-dive comparison of the two dominant open-source LLM inference engines — covering architecture, key components, performance benchmarks, industry adoption, and decision criteria."
 ---
 
-# Table of Contents
-
-1. [Executive Overview](#1-executive-overview)
-2. [Architecture Comparison](#2-architecture-comparison)
-3. [KV Cache Management: The Core Differentiator](#3-kv-cache-management-the-core-differentiator)
-4. [Scheduler Design](#4-scheduler-design)
-5. [Structured Output Generation](#5-structured-output-generation)
-6. [Distributed Serving & Multi-GPU](#6-distributed-serving--multi-gpu)
-7. [Performance Benchmarks](#7-performance-benchmarks)
-8. [Industry Adoption Survey](#8-industry-adoption-survey)
-9. [TL;DR Decision Guide](#9-tldr-decision-guide)
-
-# 1. Executive Overview
+# 1. Overview
 
 Both SGLang and vLLM are high-performance, open-source inference engines for serving large language models. They share a common lineage — both originated from UC Berkeley research labs, and both have rapidly grown into production-grade systems powering some of the world's largest AI deployments. However, they take fundamentally different architectural approaches to solving the same problem: making LLM inference fast, efficient, and cost-effective.
 
