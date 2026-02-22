@@ -196,18 +196,18 @@ vLLM breaks KV cache into fixed-size **blocks** (typically 16 tokens each) that 
 
 ```
     Request A                    Physical GPU Memory
-    ┌─────────────┐              ┌─────────────┐
+    ┌──────────────┐             ┌─────────────┐
     │ Logical Blk 0│──────────►  │ Phys Blk  7 │  ← shared prefix
     │ Logical Blk 1│──────┐      │ Phys Blk  1 │  ← shared prefix
     │ Logical Blk 2│──┐   │      │ Phys Blk  3 │  ← A's unique tokens
-    └─────────────┘   │   │      │ Phys Blk  5 │  ← B's unique tokens
+    └──────────────┘  │   │      │ Phys Blk  5 │  ← B's unique tokens
                       │   │      │ (free)      │
     Request B         │   │      │ (free)      │
-    ┌─────────────┐   │   │      └─────────────┘
+    ┌──────────────┐  │   │      └─────────────┘
     │ Logical Blk 0│──┼───┘
     │ Logical Blk 1│──┘           Blocks stored
     │ Logical Blk 2│──────────►   NON-CONTIGUOUSLY
-    └─────────────┘               (like OS pages)
+    └──────────────┘              (like OS pages)
 ```
 
 **Key advantage:** Near-zero memory waste (under 4% vs 60-80% in traditional systems). Broad compatibility — works consistently across all hardware backends and model types.
