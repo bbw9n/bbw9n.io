@@ -1,0 +1,107 @@
+<svg viewBox="0 0 900 420" width="900" height="420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a1f2a" stroke-width="0.5"/>
+    </pattern>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3a4560"/></marker>
+    <filter id="glow-cyan"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#22d3ee" flood-opacity="0.15"/></filter>
+    <filter id="glow-gold"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#fbbf24" flood-opacity="0.15"/></filter>
+    <filter id="glow-green"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#34d399" flood-opacity="0.15"/></filter>
+    <filter id="glow-orange"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#fb923c" flood-opacity="0.15"/></filter>
+    <filter id="glow-purple"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#a78bfa" flood-opacity="0.15"/></filter>
+  </defs>
+  <rect width="900" height="420" rx="12" fill="#0c0e12"/>
+  <rect width="900" height="420" rx="12" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="450" y="28" text-anchor="middle" fill="#22d3ee" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2">SGLANG ARCHITECTURE</text>
+
+  <!-- Frontend -->
+  <rect x="20" y="55" width="200" height="155" rx="10" fill="#141820" stroke="#22d3ee" stroke-width="1.5" filter="url(#glow-cyan)"/>
+  <text x="120" y="80" text-anchor="middle" fill="#22d3ee" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">FRONTEND DSL</text>
+  <line x1="60" y1="88" x2="180" y2="88" stroke="#22d3ee" stroke-width="0.5" opacity="0.3"/>
+  <text x="120" y="108" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">gen() — generation</text>
+  <text x="120" y="128" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">select() — branching</text>
+  <text x="120" y="148" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">fork() — parallelism</text>
+  <text x="120" y="172" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">+ OpenAI compat API</text>
+
+  <!-- Arrow F→Router -->
+  <path d="M 225 100 L 278 100" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Arrow F→Scheduler -->
+  <path d="M 225 160 L 278 175" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Router -->
+  <rect x="285" y="55" width="180" height="95" rx="10" fill="#141820" stroke="#fbbf24" stroke-width="1.5" filter="url(#glow-gold)"/>
+  <text x="375" y="80" text-anchor="middle" fill="#fbbf24" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">SGL-ROUTER</text>
+  <line x1="320" y1="88" x2="430" y2="88" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
+  <text x="375" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Cache-aware load balancer</text>
+  <text x="375" y="132" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Rust-based · high perf</text>
+
+  <!-- Scheduler -->
+  <rect x="285" y="165" width="180" height="115" rx="10" fill="#141820" stroke="#22d3ee" stroke-width="1.5" filter="url(#glow-cyan)"/>
+  <text x="375" y="190" text-anchor="middle" fill="#22d3ee" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">SCHEDULER</text>
+  <line x1="320" y1="198" x2="430" y2="198" stroke="#22d3ee" stroke-width="0.5" opacity="0.3"/>
+  <text x="375" y="218" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Zero-overhead CPU</text>
+  <text x="375" y="238" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Overlaps w/ GPU work</text>
+  <text x="375" y="258" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">~4K lines Python</text>
+
+  <!-- Arrow Scheduler→Radix -->
+  <path d="M 470 220 L 512 160" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Arrow Router→Radix -->
+  <path d="M 470 105 L 512 120" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- RadixAttention -->
+  <rect x="518" y="55" width="180" height="225" rx="10" fill="#141820" stroke="#34d399" stroke-width="1.5" filter="url(#glow-green)"/>
+  <text x="608" y="80" text-anchor="middle" fill="#34d399" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">RADIXATTENTION</text>
+  <line x1="548" y1="88" x2="668" y2="88" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
+  <text x="608" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Radix tree KV cache</text>
+  <text x="608" y="132" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Auto prefix sharing</text>
+  <text x="608" y="154" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">LRU eviction</text>
+  <text x="608" y="176" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Paged GPU layout</text>
+  <text x="608" y="202" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Content-addressable</text>
+  <text x="608" y="222" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">memory hierarchy</text>
+  <!-- Mini tree illustration -->
+  <circle cx="588" cy="252" r="4" fill="#34d399" opacity="0.5"/>
+  <line x1="588" y1="256" x2="573" y2="268" stroke="#34d399" stroke-width="1" opacity="0.3"/>
+  <line x1="588" y1="256" x2="603" y2="268" stroke="#34d399" stroke-width="1" opacity="0.3"/>
+  <circle cx="573" cy="270" r="3" fill="#34d399" opacity="0.3"/>
+  <circle cx="603" cy="270" r="3" fill="#34d399" opacity="0.3"/>
+  <line x1="603" y1="273" x2="613" y2="268" stroke="#34d399" stroke-width="1" opacity="0.2"/>
+  <line x1="603" y1="273" x2="623" y2="268" stroke="#34d399" stroke-width="1" opacity="0.2"/>
+  <circle cx="628" cy="252" r="4" fill="#34d399" opacity="0.5"/>
+  <line x1="628" y1="256" x2="638" y2="268" stroke="#34d399" stroke-width="1" opacity="0.3"/>
+  <circle cx="640" cy="270" r="3" fill="#34d399" opacity="0.3"/>
+
+  <!-- Arrow Radix→GPU -->
+  <path d="M 703 165 L 732 165" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- GPU Workers -->
+  <rect x="738" y="55" width="142" height="225" rx="10" fill="#141820" stroke="#fb923c" stroke-width="1.5" filter="url(#glow-orange)"/>
+  <text x="809" y="80" text-anchor="middle" fill="#fb923c" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">GPU WORKERS</text>
+  <line x1="763" y1="88" x2="855" y2="88" stroke="#fb923c" stroke-width="0.5" opacity="0.3"/>
+  <text x="809" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">FlashInfer kernels</text>
+  <text x="809" y="132" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">TP / DP / EP / PP</text>
+  <text x="809" y="154" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">CUDA Graphs</text>
+  <text x="809" y="176" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Chunked prefill</text>
+  <text x="809" y="198" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Speculative decode</text>
+  <text x="809" y="220" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Quantization</text>
+  <text x="809" y="240" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">FP4/FP8/INT4/AWQ</text>
+  <!-- GPU icons -->
+  <rect x="770" y="254" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
+  <rect x="792" y="254" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
+  <rect x="814" y="254" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
+  <rect x="836" y="254" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
+
+  <!-- xGrammar -->
+  <rect x="285" y="300" width="180" height="85" rx="10" fill="#141820" stroke="#a78bfa" stroke-width="1.5" filter="url(#glow-purple)"/>
+  <text x="375" y="325" text-anchor="middle" fill="#a78bfa" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">XGRAMMAR</text>
+  <line x1="320" y1="333" x2="430" y2="333" stroke="#a78bfa" stroke-width="0.5" opacity="0.3"/>
+  <text x="375" y="353" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Compressed FSM</text>
+  <text x="375" y="373" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Jump-forward decoding</text>
+
+  <!-- Arrow Scheduler→xGrammar -->
+  <path d="M 375 280 L 375 294" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Footer -->
+  <text x="20" y="410" fill="#22d3ee" font-family="Consolas,monospace" font-size="10" opacity="0.4">Frontend + Runtime co-designed for structured, multi-step generation</text>
+</svg>
