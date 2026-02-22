@@ -4,6 +4,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { highlight } from "sugar-high";
 import React from "react";
 import remarkGfm from "remark-gfm";
+import { Mermaid } from "./mermaid";
 
 function Table({ data }) {
     let headers = data.headers.map((header, index) => (
@@ -49,9 +50,45 @@ function RoundedImage(props) {
     return <Image alt={props.alt} className="rounded-lg" {...props} />;
 }
 
-function Code({ children, ...props }) {
+function Code({ children, className, ...props }) {
+    // For mermaid blocks, don't apply syntax highlighting - just pass through
+    if (className?.includes("language-mermaid")) {
+        return (
+            <code className={className} {...props}>
+                {children}
+            </code>
+        );
+    }
     let codeHTML = highlight(children);
     return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
+}
+
+function Pre({
+    children,
+    ...props
+}: {
+    children?: React.ReactNode;
+    className?: string;
+}) {
+    // For code blocks, MDX passes a single code element as children
+    // We need to check if it's a mermaid block and render it specially
+    try {
+        const child = React.Children.only(children) as React.ReactElement<{
+            className?: string;
+            children?: string;
+        }>;
+
+        if (child?.props?.className?.includes("language-mermaid")) {
+            const code = child.props.children;
+            if (typeof code === "string") {
+                return <Mermaid chart={code.trim()} />;
+            }
+        }
+    } catch {
+        // If Children.only throws, just render normally
+    }
+
+    return <pre {...props}>{children}</pre>;
 }
 
 function slugify(str) {
@@ -97,6 +134,7 @@ let components = {
     Image: RoundedImage,
     a: CustomLink,
     code: Code,
+    pre: Pre,
     Table,
 };
 

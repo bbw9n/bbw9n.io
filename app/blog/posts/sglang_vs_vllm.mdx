@@ -46,9 +46,92 @@ While both engines aim to maximize GPU utilization for LLM serving, they differ 
 
 ![SGLang Architecture Diagram](/images/sglang-architecture.svg)
 
+### SGLang Inference Dataflow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router as sgl-router<br/>(Rust LB)
+    participant Scheduler as Scheduler<br/>(Zero-overhead)
+    participant Radix as RadixAttention<br/>KV Cache
+    participant GPU as GPU Workers<br/>(FlashInfer)
+
+    Client->>Router: 1. Send request
+    Router->>Router: 2. Predict cache hit rate
+    Router->>Scheduler: 3. Route to best instance
+    Scheduler->>Radix: 4. Radix tree prefix lookup
+    Radix-->>Scheduler: 5. Return matched KV nodes
+    
+    Note over Scheduler,GPU: Zero-overhead: prepare next batch while GPU runs
+    
+    Scheduler->>GPU: 6. Submit batch (overlapped)
+    GPU->>GPU: 7. Execute FlashInfer attention
+    GPU->>GPU: 8. Decode tokens (+ xGrammar jump-forward)
+    GPU-->>Scheduler: 9. Return generated tokens
+    Scheduler->>Radix: 10. Insert new KV cache nodes
+    Scheduler-->>Client: 11. Stream tokens
+```
+
+**SGLang Flow Explanation:**
+
+1. **Cache-aware routing (Steps 1-3):** The Rust-based sgl-router predicts which backend instance will have the highest cache hit rate for this request's prefix, achieving up to 3.8x higher hit rates than round-robin.
+
+2. **Radix tree lookup (Steps 4-5):** The scheduler traverses the radix tree to find the longest matching prefix. Shared prefixes (system prompts, few-shot examples) are discovered automatically — no configuration needed.
+
+3. **Zero-overhead scheduling (Step 6):** While the GPU processes the current batch, the CPU concurrently prepares the next batch. This overlap eliminates CPU scheduling stalls that can waste up to 50% of time in other engines.
+
+4. **Execution with jump-forward (Steps 7-8):** FlashInfer kernels execute attention. For structured output, xGrammar's compressed FSM can skip deterministic tokens entirely, bypassing 30-50% of GPU forward passes.
+
+5. **Cache update and streaming (Steps 9-11):** New KV cache is inserted into the radix tree for future reuse. Tokens stream back to the client as they're generated.
+
 ## vLLM Architecture (V1 Engine)
 
 ![vLLM Architecture Diagram](/images/vllm-architecture.svg)
+
+### vLLM Inference Dataflow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Server
+    participant Engine as Core Engine
+    participant Block as Block Manager<br/>(PagedAttention)
+    participant GPU as Executor<br/>(Model Runner)
+
+    Client->>API: 1. Send request
+    API->>API: 2. Tokenize input
+    API->>Engine: 3. Queue request
+    Engine->>Block: 4. Allocate logical blocks
+    Block->>Block: 5. Check prefix cache (APC)
+    Block-->>Engine: 6. Return block allocation
+    
+    loop Continuous Batching (per iteration)
+        Engine->>Engine: 7. Dynamic batch formation
+        Engine->>GPU: 8. Execute with block tables
+        GPU->>GPU: 9. Attention via indirection
+        GPU-->>Engine: 10. Return logits
+        Engine->>Engine: 11. Sample next token
+        Engine->>Block: 12. Append to blocks (CoW if shared)
+        Block->>Block: 13. Check memory pressure
+        alt Memory pressure high
+            Block->>Block: 14. Preempt / swap to CPU
+        end
+    end
+    
+    Engine-->>Client: 15. Stream tokens
+```
+
+**vLLM Flow Explanation:**
+
+1. **Request handling (Steps 1-3):** The API server tokenizes the input and queues the request in the core engine. vLLM's OpenAI-compatible API is the most mature in the ecosystem.
+
+2. **Block allocation (Steps 4-6):** The block manager allocates logical blocks for the sequence. Like OS virtual memory, blocks are fixed-size (typically 16 tokens) and mapped to physical GPU memory on demand. Automatic Prefix Caching (APC) checks for reusable prefixes.
+
+3. **Continuous batching loop (Steps 7-12):** Each iteration dynamically forms a batch from all active requests. The GPU executes attention using block table indirection — physical blocks can be non-contiguous. New tokens are appended; if blocks are shared, copy-on-write creates new physical blocks.
+
+4. **Memory management (Steps 13-14):** Under memory pressure, vLLM can preempt lower-priority requests, swapping their KV cache to CPU memory or recomputing later. This flexibility enables handling bursty workloads gracefully.
+
+5. **Streaming (Step 15):** Tokens stream back as they're generated. The iteration loop continues until all sequences complete.
 
 ## Core Philosophical Differences
 
@@ -377,4 +460,4 @@ There is no universally "better" engine — the right choice depends on your spe
 > **Final advice:** Always benchmark with YOUR workload on YOUR hardware before committing. Both projects release new versions frequently with significant performance improvements. The "best" engine today may not be the best in 3 months. Consider maintaining the ability to switch — both support OpenAI-compatible APIs, making migration relatively straightforward.
 
 ---
-_Research compiled from: official documentation, GitHub repos, academic papers (arXiv:2312.07104, arXiv:2309.06180), LMSYS blog, vLLM blog, independent benchmarks (AIMultiple, Clarifai), PyTorch Foundation announcements, Red Hat engineering blogs, and community reports. All data as of February 2026._
+_Research compiled from: official documentation, GitHub repos, academic papers (arXiv:2312.07104, arXiv:2309.06180), LMSYS blog, vLLM blog, independent benchmarks (AIMultiple, Clarifai), PyTorch Foundation announcements, Red Hat engineering blogs, and community reports. All data as of January 2026._

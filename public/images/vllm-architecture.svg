@@ -1,114 +1,69 @@
-<svg viewBox="0 0 900 420" width="900" height="420" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 820 620" width="820" height="620" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a1f2a" stroke-width="0.5"/>
-    </pattern>
-    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3a4560"/></marker>
-    <filter id="glow-pink"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#f472b6" flood-opacity="0.15"/></filter>
-    <filter id="glow-gold"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#fbbf24" flood-opacity="0.15"/></filter>
-    <filter id="glow-green"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#34d399" flood-opacity="0.15"/></filter>
-    <filter id="glow-orange"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#fb923c" flood-opacity="0.15"/></filter>
-    <filter id="glow-purple"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#a78bfa" flood-opacity="0.15"/></filter>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#94a3b8"/></marker>
+    <filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.06"/></filter>
   </defs>
-  <rect width="900" height="420" rx="12" fill="#0c0e12"/>
-  <rect width="900" height="420" rx="12" fill="url(#grid)"/>
+  <rect width="820" height="620" rx="12" fill="#f8f9fb"/>
 
   <!-- Title -->
-  <text x="450" y="28" text-anchor="middle" fill="#f472b6" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2">VLLM ARCHITECTURE (V1 ENGINE)</text>
+  <text x="410" y="32" text-anchor="middle" fill="#be185d" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">VLLM ARCHITECTURE (V1 ENGINE)</text>
+  <text x="410" y="50" text-anchor="middle" fill="#94a3b8" font-family="Segoe UI,sans-serif" font-size="11">Request flow: top → bottom</text>
 
-  <!-- Serving Layer -->
-  <rect x="20" y="55" width="185" height="155" rx="10" fill="#141820" stroke="#f472b6" stroke-width="1.5" filter="url(#glow-pink)"/>
-  <text x="112" y="80" text-anchor="middle" fill="#f472b6" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">SERVING LAYER</text>
-  <line x1="50" y1="88" x2="175" y2="88" stroke="#f472b6" stroke-width="0.5" opacity="0.3"/>
-  <text x="112" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">OpenAI-compat API</text>
-  <text x="112" y="130" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">AsyncIO server</text>
-  <text x="112" y="150" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Chat / Completion</text>
-  <text x="112" y="170" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Embedding / Classify</text>
+  <!-- ═══ Incoming Request ═══ -->
+  <rect x="295" y="68" width="230" height="38" rx="19" fill="#be185d" filter="url(#s)"/>
+  <text x="410" y="92" text-anchor="middle" fill="#fff" font-family="Segoe UI,sans-serif" font-size="13" font-weight="600">Incoming Request</text>
+  <line x1="410" y1="106" x2="410" y2="130" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- Arrow Serving→Client -->
-  <path d="M 210 100 L 248 90" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
-  <!-- Arrow Serving→Core -->
-  <path d="M 210 160 L 248 175" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- ═══ Layer 1: Serving Layer ═══ -->
+  <rect x="60" y="136" width="700" height="72" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#s)"/>
+  <text x="80" y="155" fill="#94a3b8" font-family="Consolas,monospace" font-size="9" letter-spacing="1">LAYER 1</text>
+  <text x="410" y="164" text-anchor="middle" fill="#be185d" font-family="Consolas,monospace" font-size="12" font-weight="700">SERVING LAYER  ·  OpenAI-Compatible API</text>
+  <text x="170" y="190" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Chat / Completion</text>
+  <line x1="280" y1="175" x2="280" y2="200" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="390" y="190" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Embedding / Classify</text>
+  <line x1="500" y1="175" x2="500" y2="200" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="610" y="190" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">AsyncIO server</text>
+  <line x1="410" y1="208" x2="410" y2="232" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- Engine Client -->
-  <rect x="255" y="55" width="175" height="90" rx="10" fill="#141820" stroke="#f472b6" stroke-width="1.5" filter="url(#glow-pink)"/>
-  <text x="342" y="80" text-anchor="middle" fill="#f472b6" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">ENGINE CLIENT</text>
-  <line x1="285" y1="88" x2="400" y2="88" stroke="#f472b6" stroke-width="0.5" opacity="0.3"/>
-  <text x="342" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Lifecycle management</text>
-  <text x="342" y="130" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">IPC coordination</text>
+  <!-- ═══ Layer 2: Engine Client ═══ -->
+  <rect x="60" y="238" width="700" height="64" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#s)"/>
+  <text x="80" y="257" fill="#94a3b8" font-family="Consolas,monospace" font-size="9" letter-spacing="1">LAYER 2</text>
+  <text x="410" y="266" text-anchor="middle" fill="#be185d" font-family="Consolas,monospace" font-size="12" font-weight="700">ENGINE CLIENT</text>
+  <text x="410" y="290" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Manages engine lifecycle · coordinates IPC with core engine processes · multi-process orchestration</text>
+  <line x1="410" y1="302" x2="410" y2="326" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- Core Engine -->
-  <rect x="255" y="160" width="175" height="120" rx="10" fill="#141820" stroke="#f472b6" stroke-width="1.5" filter="url(#glow-pink)"/>
-  <text x="342" y="185" text-anchor="middle" fill="#f472b6" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">CORE ENGINE</text>
-  <line x1="285" y1="193" x2="400" y2="193" stroke="#f472b6" stroke-width="0.5" opacity="0.3"/>
-  <text x="342" y="215" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Scheduling queues</text>
-  <text x="342" y="235" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Tokenization</text>
-  <text x="342" y="255" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Output processing</text>
-  <text x="342" y="270" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">Preemption support</text>
+  <!-- ═══ Layer 3: Core Engine ═══ -->
+  <rect x="60" y="332" width="700" height="64" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#s)"/>
+  <text x="80" y="351" fill="#94a3b8" font-family="Consolas,monospace" font-size="9" letter-spacing="1">LAYER 3</text>
+  <text x="410" y="360" text-anchor="middle" fill="#be185d" font-family="Consolas,monospace" font-size="12" font-weight="700">CORE ENGINE  ·  Scheduler</text>
+  <text x="410" y="384" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Scheduling queues · tokenization · output processing · preemption support · continuous batching</text>
+  <!-- Split arrows -->
+  <line x1="310" y1="396" x2="310" y2="420" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="560" y1="396" x2="560" y2="420" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- Arrow Client→Core -->
-  <path d="M 342 147 L 342 155" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
-  <!-- Arrow Core→Paged -->
-  <path d="M 435 220 L 475 170" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- ═══ Layer 4a: PagedAttention ═══ -->
+  <rect x="60" y="426" width="420" height="80" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#s)"/>
+  <text x="80" y="445" fill="#94a3b8" font-family="Consolas,monospace" font-size="9" letter-spacing="1">LAYER 4a</text>
+  <text x="270" y="454" text-anchor="middle" fill="#047857" font-family="Consolas,monospace" font-size="12" font-weight="700">PAGEDATTENTION  ·  KV Cache Manager</text>
+  <text x="270" y="476" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Block-based KV cache · virtual memory paging · logical → physical map</text>
+  <text x="270" y="496" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Copy-on-write sharing · prefix caching (APC) · swap / recompute</text>
 
-  <!-- PagedAttention -->
-  <rect x="480" y="55" width="195" height="225" rx="10" fill="#141820" stroke="#34d399" stroke-width="1.5" filter="url(#glow-green)"/>
-  <text x="577" y="80" text-anchor="middle" fill="#34d399" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">PAGEDATTENTION</text>
-  <line x1="510" y1="88" x2="645" y2="88" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
-  <text x="577" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Block-based KV cache</text>
-  <text x="577" y="132" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Virtual memory paging</text>
-  <text x="577" y="154" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Logical → Physical map</text>
-  <text x="577" y="176" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Copy-on-write sharing</text>
-  <text x="577" y="198" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Block table tracking</text>
-  <text x="577" y="220" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Prefix caching (APC)</text>
-  <text x="577" y="242" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Swapping / recompute</text>
-  <!-- Mini block illustration -->
-  <rect x="510" y="256" width="18" height="12" rx="2" fill="#34d399" opacity="0.15" stroke="#34d399" stroke-width="0.6"/>
-  <rect x="532" y="256" width="18" height="12" rx="2" fill="#34d399" opacity="0.25" stroke="#34d399" stroke-width="0.6"/>
-  <rect x="554" y="256" width="18" height="12" rx="2" fill="#34d399" opacity="0.15" stroke="#34d399" stroke-width="0.6"/>
-  <rect x="576" y="256" width="18" height="12" rx="2" fill="none" stroke="#34d399" stroke-width="0.6" stroke-dasharray="2"/>
-  <rect x="598" y="256" width="18" height="12" rx="2" fill="#34d399" opacity="0.25" stroke="#34d399" stroke-width="0.6"/>
-  <rect x="620" y="256" width="18" height="12" rx="2" fill="none" stroke="#34d399" stroke-width="0.6" stroke-dasharray="2"/>
-  <rect x="642" y="256" width="18" height="12" rx="2" fill="#34d399" opacity="0.15" stroke="#34d399" stroke-width="0.6"/>
+  <!-- ═══ Layer 4b: llm-d ═══ -->
+  <rect x="500" y="426" width="260" height="80" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#s)"/>
+  <text x="520" y="445" fill="#94a3b8" font-family="Consolas,monospace" font-size="9" letter-spacing="1">LAYER 4b</text>
+  <text x="630" y="454" text-anchor="middle" fill="#6d28d9" font-family="Consolas,monospace" font-size="12" font-weight="700">LLM-D</text>
+  <text x="630" y="476" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">K8s-native orchestration</text>
+  <text x="630" y="496" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Disaggregated P/D serving</text>
 
-  <!-- Arrow Paged→Executor -->
-  <path d="M 680 165 L 715 165" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Merge arrows -->
+  <line x1="310" y1="506" x2="310" y2="522" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="560" y1="506" x2="560" y2="522" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="310" y1="522" x2="560" y2="522" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="410" y1="522" x2="410" y2="538" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- Executor / Workers -->
-  <rect x="720" y="55" width="160" height="225" rx="10" fill="#141820" stroke="#fb923c" stroke-width="1.5" filter="url(#glow-orange)"/>
-  <text x="800" y="80" text-anchor="middle" fill="#fb923c" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">EXECUTOR</text>
-  <line x1="745" y1="88" x2="855" y2="88" stroke="#fb923c" stroke-width="0.5" opacity="0.3"/>
-  <text x="800" y="110" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Worker processes</text>
-  <text x="800" y="132" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Model Runner</text>
-  <text x="800" y="154" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">TP / PP parallelism</text>
-  <text x="800" y="180" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">Multi-backend:</text>
-  <text x="800" y="200" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">FlashAttn / FlashInfer</text>
-  <text x="800" y="222" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">CUDA / ROCm / TPU</text>
-  <text x="800" y="244" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Neuron / Gaudi</text>
-  <!-- GPU icons -->
-  <rect x="755" y="258" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
-  <rect x="777" y="258" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
-  <rect x="799" y="258" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
-  <rect x="821" y="258" width="16" height="12" rx="2" fill="none" stroke="#fb923c" stroke-width="0.8" opacity="0.3"/>
-
-  <!-- Continuous Batching -->
-  <rect x="255" y="305" width="255" height="75" rx="10" fill="#141820" stroke="#fbbf24" stroke-width="1.5" filter="url(#glow-gold)"/>
-  <text x="382" y="330" text-anchor="middle" fill="#fbbf24" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">CONTINUOUS BATCHING</text>
-  <line x1="290" y1="338" x2="475" y2="338" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
-  <text x="382" y="358" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Dynamic batch formation</text>
-  <text x="382" y="373" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">per-iteration scheduling</text>
-
-  <!-- llm-d -->
-  <rect x="530" y="305" width="210" height="75" rx="10" fill="#141820" stroke="#a78bfa" stroke-width="1.5" filter="url(#glow-purple)"/>
-  <text x="635" y="330" text-anchor="middle" fill="#a78bfa" font-family="Consolas,monospace" font-size="11" font-weight="700" letter-spacing="1">LLM-D (K8S STACK)</text>
-  <line x1="560" y1="338" x2="710" y2="338" stroke="#a78bfa" stroke-width="0.5" opacity="0.3"/>
-  <text x="635" y="358" text-anchor="middle" fill="#a0aabb" font-family="Segoe UI,sans-serif" font-size="12">Disaggregated P/D serving</text>
-  <text x="635" y="373" text-anchor="middle" fill="#6b7a90" font-family="Segoe UI,sans-serif" font-size="11">Red Hat · Google · IBM · NVIDIA</text>
-
-  <!-- Arrows down -->
-  <path d="M 342 282 L 382 300" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
-  <path d="M 577 282 L 635 300" stroke="#3a4560" stroke-width="2" marker-end="url(#arr)"/>
-
-  <!-- Footer -->
-  <text x="20" y="410" fill="#f472b6" font-family="Consolas,monospace" font-size="10" opacity="0.4">Modular, plugin-based architecture optimized for broad compatibility</text>
+  <!-- ═══ Layer 5: Executor / GPU Workers ═══ -->
+  <rect x="60" y="544" width="700" height="64" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#s)"/>
+  <text x="80" y="563" fill="#94a3b8" font-family="Consolas,monospace" font-size="9" letter-spacing="1">LAYER 5</text>
+  <text x="410" y="572" text-anchor="middle" fill="#c2410c" font-family="Consolas,monospace" font-size="12" font-weight="700">EXECUTOR  ·  GPU WORKERS</text>
+  <text x="410" y="596" text-anchor="middle" fill="#475569" font-family="Segoe UI,sans-serif" font-size="12">Model Runner · TP/PP · FlashAttn/FlashInfer · CUDA/ROCm/TPU/Neuron/Gaudi · quantization</text>
 </svg>
