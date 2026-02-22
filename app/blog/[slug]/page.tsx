@@ -70,7 +70,7 @@ export default async function Blog({
     }
 
     return (
-        <div className="flex flex-row-reverse gap-16">
+        <section className="relative">
             <script
                 type="application/ld+json"
                 suppressHydrationWarning
@@ -93,24 +93,22 @@ export default async function Blog({
                     }),
                 }}
             />
-            {/* Main content */}
-            <section className="max-w-3xl min-w-0">
-                <h1 className="title font-semibold text-2xl tracking-tighter">
-                    {post.metadata.title}
-                </h1>
-                <div className="flex justify-between items-center mt-2 mb-8 text-sm">
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {formatDate(post.metadata.publishedAt)}
-                    </p>
-                </div>
-                <article className="prose">
-                    <CustomMDX source={post.content} />
-                </article>
-            </section>
-            {/* Left sidebar TOC */}
-            <aside className="w-48 shrink-0 max-h-[calc(100vh-8rem)] overflow-y-auto sticky top-8">
+            {/* Left sidebar TOC - fixed position relative to viewport */}
+            <aside className="hidden xl:block fixed left-[max(1rem,calc(50%-24rem-16rem))] top-24 w-52 max-h-[calc(100vh-8rem)] overflow-y-auto">
                 <TableOfContents />
             </aside>
-        </div>
+            {/* Main content */}
+            <h1 className="title font-semibold text-2xl tracking-tighter">
+                {post.metadata.title}
+            </h1>
+            <div className="flex justify-between items-center mt-2 mb-8 text-sm">
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {formatDate(post.metadata.publishedAt)}
+                </p>
+            </div>
+            <article className="prose">
+                <CustomMDX source={post.content} />
+            </article>
+        </section>
     );
 }
