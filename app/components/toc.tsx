@@ -60,9 +60,9 @@ export function TableOfContents() {
                         >
                             <a
                                 href={`#${heading.id}`}
-                                className={`block py-1 transition-colors ${
+                                className={`block py-1 px-2 -mx-2 rounded transition-colors ${
                                     activeId === heading.id
-                                        ? "text-neutral-900 dark:text-neutral-100 font-medium"
+                                        ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-medium"
                                         : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300"
                                 }`}
                             >
