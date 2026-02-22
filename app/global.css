@@ -138,17 +138,19 @@ input[type="email"] {
 }
 
 .prose table {
-    @apply border-collapse my-4;
-    display: block;
+    @apply border-collapse my-4 w-full text-sm;
+    display: table;
     max-width: 100%;
-    overflow-x: auto;
+    table-layout: fixed;
+    @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg;
 }
 
 .prose th,
 .prose td {
-    @apply px-3 py-2 text-left whitespace-nowrap;
+    @apply px-3 py-2 text-left;
     border-left: 1px solid;
-    @apply border-neutral-300 dark:border-neutral-700;
+    @apply border-neutral-200 dark:border-neutral-800;
+    word-wrap: break-word;
 }
 
 .prose th:first-child,
@@ -157,7 +159,7 @@ input[type="email"] {
 }
 
 .prose th {
-    @apply font-medium border-b border-neutral-300 dark:border-neutral-700;
+    @apply font-medium border-b border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800;
 }
 
 .prose figcaption a p {
