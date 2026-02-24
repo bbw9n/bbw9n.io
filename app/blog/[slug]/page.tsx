@@ -94,7 +94,7 @@ export default async function Blog({
                 }}
             />
             {/* Left sidebar TOC - fixed position relative to viewport */}
-            <aside className="hidden xl:block fixed left-[max(1rem,calc(50%-24rem-16rem))] top-24 w-52 max-h-[calc(100vh-8rem)] overflow-y-auto">
+            <aside className="hidden xl:block fixed left-[max(1rem,calc(50%-24rem-22rem))] top-24 w-64 max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden">
                 <TableOfContents />
             </aside>
             {/* Main content */}
