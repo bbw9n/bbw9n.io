@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { highlight } from "sugar-high";
+import { codeToHtml } from "shiki";
 import React from "react";
 import remarkGfm from "remark-gfm";
 import { Mermaid } from "./mermaid";
@@ -50,17 +50,44 @@ function RoundedImage(props) {
     return <Image alt={props.alt} className="rounded-lg" {...props} />;
 }
 
-function Code({ children, className, ...props }) {
-    // For mermaid blocks, don't apply syntax highlighting - just pass through
-    if (className?.includes("language-mermaid")) {
+// Async Code component for shiki highlighting
+async function Code({ children, className, ...props }) {
+    const language = className?.replace("language-", "") || "text";
+
+    // For mermaid, return plain code (handled by Pre)
+    if (language === "mermaid") {
         return (
             <code className={className} {...props}>
                 {children}
             </code>
         );
     }
-    let codeHTML = highlight(children);
-    return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
+
+    // Code block (has className like "language-xxx")
+    if (className) {
+        const html = await codeToHtml(children, {
+            lang: language,
+            themes: {
+                light: "github-light",
+                dark: "github-dark",
+            },
+        });
+
+        // Extract just the code content from shiki's output
+        // Shiki wraps in <pre><code>...</code></pre>, we just want the inner content
+        const codeMatch = html.match(/<code[^>]*>([\s\S]*)<\/code>/);
+        const codeContent = codeMatch ? codeMatch[1] : html;
+
+        return (
+            <code
+                dangerouslySetInnerHTML={{ __html: codeContent }}
+                {...props}
+            />
+        );
+    }
+
+    // Inline code - render plainly with CSS styling (no syntax highlighting)
+    return <code {...props}>{children}</code>;
 }
 
 function Pre({
