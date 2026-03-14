@@ -71,6 +71,9 @@ const processor = unified()
             light: "github-light",
             dark: "github-dark",
         },
+        defaultLanguage: "text",
+        cssVariablePrefix: "--shiki-",
+        defaultColor: false,
     })
     .use(rehypeStringify);
 
