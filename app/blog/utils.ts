@@ -8,6 +8,13 @@ type Metadata = {
   image?: string
 }
 
+export type BlogPost = {
+  metadata: Metadata
+  slug: string
+  content: string
+  format: 'mdx' | 'org'
+}
+
 function parseFrontmatter(fileContent: string) {
   let frontmatterRegex = /---\s*([\s\S]*?)\s*---/
   let match = frontmatterRegex.exec(fileContent)
@@ -26,31 +33,69 @@ function parseFrontmatter(fileContent: string) {
   return { metadata: metadata as Metadata, content }
 }
 
-function getMDXFiles(dir) {
-  return fs.readdirSync(dir).filter((file) => path.extname(file) === '.mdx')
+function parseOrgFrontmatter(fileContent: string) {
+  let metadata: Partial<Metadata> = {}
+  let lines = fileContent.split('\n')
+  let contentStartIndex = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    let match = lines[i].match(/^#\+(\w+):\s*(.*)$/)
+    if (match) {
+      let key = match[1].toLowerCase()
+      let value = match[2].trim()
+      if (key === 'title') metadata.title = value
+      else if (key === 'date') metadata.publishedAt = value
+      else if (key === 'summary') metadata.summary = value
+      else if (key === 'image') metadata.image = value
+      contentStartIndex = i + 1
+    } else if (lines[i].trim() === '') {
+      contentStartIndex = i + 1
+    } else {
+      break
+    }
+  }
+
+  let content = lines.slice(contentStartIndex).join('\n').trim()
+  return { metadata: metadata as Metadata, content }
 }
 
-function readMDXFile(filePath) {
+function getPostFiles(dir: string) {
+  return fs.readdirSync(dir).filter((file) => {
+    let ext = path.extname(file)
+    return ext === '.mdx' || ext === '.org'
+  })
+}
+
+function readPostFile(filePath: string): { metadata: Metadata; content: string; format: 'mdx' | 'org' } {
   let rawContent = fs.readFileSync(filePath, 'utf-8')
-  return parseFrontmatter(rawContent)
+  let ext = path.extname(filePath)
+
+  if (ext === '.org') {
+    let { metadata, content } = parseOrgFrontmatter(rawContent)
+    return { metadata, content, format: 'org' }
+  }
+
+  let { metadata, content } = parseFrontmatter(rawContent)
+  return { metadata, content, format: 'mdx' }
 }
 
-function getMDXData(dir) {
-  let mdxFiles = getMDXFiles(dir)
-  return mdxFiles.map((file) => {
-    let { metadata, content } = readMDXFile(path.join(dir, file))
+function getPostData(dir: string): BlogPost[] {
+  let files = getPostFiles(dir)
+  return files.map((file) => {
+    let { metadata, content, format } = readPostFile(path.join(dir, file))
     let slug = path.basename(file, path.extname(file))
 
     return {
       metadata,
       slug,
       content,
+      format,
     }
   })
 }
 
 export function getBlogPosts() {
-  return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts'))
+  return getPostData(path.join(process.cwd(), 'app', 'blog', 'posts'))
 }
 
 export function formatDate(date: string, includeRelative = false) {

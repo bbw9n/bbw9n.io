@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "app/components/mdx";
+import { CustomOrg } from "app/components/org";
 import { formatDate, getBlogPosts } from "app/blog/utils";
 import { baseUrl } from "app/sitemap";
 import { TableOfContents } from "app/components/toc";
@@ -107,7 +108,11 @@ export default async function Blog({
                 </p>
             </div>
             <article className="prose">
-                <CustomMDX source={post.content} />
+                {post.format === "org" ? (
+                    <CustomOrg source={post.content} />
+                ) : (
+                    <CustomMDX source={post.content} />
+                )}
             </article>
         </section>
     );
