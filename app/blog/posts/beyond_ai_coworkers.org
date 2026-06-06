@@ -1,0 +1,361 @@
+#+TITLE: Beyond AI Coworkers
+#+DATE: 2026-06-06
+#+SUMMARY: AI-native collaboration is not about smarter chatbots, but about turning organizational work itself into a shared, continuously evolving operational graph where humans and agents collaboratively maintain state, memory, and execution.
+
+Over the past year, I’ve had a strange feeling whenever people talk about ~AI co-workers~.
+
+Not because I think the idea is wrong. Quite the opposite. Systems like Claude Code, Codex, Devin, Cursor, and the broader wave of agentic tooling are clearly important. They already change how engineering work happens day to day.
+But something about the framing still feels incomplete.
+
+Most conversations in the industry seem to assume the future looks roughly like this:
+
+#+begin_src mermaid
+flowchart LR
+H[Human]
+A[AI Assistant]
+W[Work]
+
+H --> A
+A --> W
+
+#+end_src
+
+A human asks an AI to do work. The AI becomes the center of gravity.
+
+This is already powerful enough to feel magical sometimes. You ask for a PR summary, a migration plan, a test strategy, a roadmap draft, and within seconds something usable appears. Compared to software from even three years ago, this feels like science fiction. And yet the more I work with these systems, the more I suspect this interaction model is still transitional.
+
+Not wrong. Just incomplete.
+
+* The Hard Thing About Organizational Work
+
+The deeper I thought about it, the more I realized that most organizational problems are not actually implementation problems.
+
+The hard part is rarely:
+
+#+begin_quote
+“Can somebody produce text?”
+#+end_quote
+
+The hard part is usually:
+#+begin_example
+- keeping context synchronized
+- maintaining shared understanding
+- tracking dependencies
+- remembering decisions
+- coordinating handoffs
+- understanding operational state
+#+end_example
+
+In other words, organizations are fundamentally state-management systems. That sounds almost absurdly reductionist at first, but I increasingly think it’s true.
+
+A startup is not just people talking to each other. It is a constantly evolving graph of:
+
+#+begin_example
+- decisions
+- requirements
+- dependencies
+- tasks
+- ownerships
+- approvals
+- code
+- incidents
+- launches
+- experiments
+- metrics
+#+end_example
+
+
+
+The problem is that modern collaboration software fragments this graph across dozens of disconnected surfaces.
+
+The PR lives in GitHub.
+
+The requirement lives in Notion.
+
+The discussion lives in Slack.
+
+The incident lives in PagerDuty.
+
+The rollout checklist lives in Linear.
+
+The metric lives in Looker.
+
+The knowledge lives nowhere.
+
+Humans become the synchronization layer between systems.
+
+And once I started seeing it that way, a lot of current AI tooling suddenly felt oddly constrained.
+
+* AI Is Still Living Outside The System
+
+Most AI systems today still behave like external assistants.
+
+You ask a question.
+
+The model responds.
+
+You manually bridge the output back into the organization.
+
+Even when products become more “agentic,” the underlying mental model often remains surprisingly chat-centric.
+
+The AI knows things because you told it things.
+
+Its understanding exists inside context windows and conversation histories.
+
+But organizations do not operate through conversations alone.
+
+Organizations operate through persistent state.
+
+That distinction feels increasingly important.
+
+* GitHub Accidentally Predicted The Future
+
+I think one reason coding agents feel dramatically more capable than general-purpose office AI is because software engineering already has an unusually rich operational graph.
+
+GitHub is not fundamentally a chat application.
+
+It is a state system.
+
+#+begin_src mermaid
+graph TD
+ISSUE[Issue]
+PR[Pull Request]
+COMMIT[Commit]
+TEST[Test Run]
+DEPLOY[Deployment]
+
+
+ISSUE --> PR
+PR --> COMMIT
+COMMIT --> TEST
+TEST --> DEPLOY
+
+#+end_src
+
+The objects already exist.
+
+Relationships already exist.
+
+Lineage already exists.
+
+Humans and automation both manipulate shared artifacts:
+#+begin_example
+- engineers create PRs
+- CI systems run tests
+- deployment bots release code
+- review bots annotate diffs
+- observability systems attach failures
+#+end_example
+
+The collaboration revolves around evolving operational state rather than conversations alone.
+
+And I think this explains why coding agents are advancing faster than many other forms of AI collaboration.
+
+The substrate is better.
+
+The structure already exists.
+
+* The Realization That Changed My Thinking
+
+At some point I realized I had been thinking about AI collaboration backwards.
+
+The dominant framing today is something like:
+
+#+begin_example
+Human → AI → Work
+#+end_example
+
+A human requests work from an AI.
+
+But increasingly I think the future looks closer to this:
+
+#+begin_example
+Work
+/    
+Human      AI
+#+end_example
+
+Or put differently:
+
+#+begin_example
+Work ← Human ← AI
+#+end_example
+
+Not because AI is subordinate to humans, but because the work itself becomes primary.
+
+Humans and agents both operate on a shared work graph.
+
+The organizational state becomes the center of gravity.
+
+This sounds subtle, but I think it completely changes the architecture of collaboration software.
+
+* From Conversation-Centric To State-Centric
+
+Today, most AI systems are still conversation-centric.
+
+The conversation is the primary container.
+
+But conversations are terrible long-term operational memory.
+
+They are ephemeral.
+
+They branch poorly.
+
+They are difficult to synchronize.
+
+They decay under scale.
+
+Organizations compensate by continuously translating conversations into structured artifacts:
+#+begin_example
+- docs
+- tickets
+- plans
+- PRs
+- reports
+- dashboards
+#+end_example
+
+What if those artifacts were the primary reality from the start?
+
+What if the workspace itself continuously maintained organizational coherence?
+
+Imagine a PM updates a requirement.
+
+Today the flow often looks like this:
+
+#+begin_example
+Notion update
+↓
+Slack message
+↓
+Jira ticket/Linear Issue edits
+↓
+Engineering notices later
+↓
+QA misses dependency
+↓
+Ops discovers rollout issue
+#+end_example
+
+The coordination burden is human.
+
+But in a genuinely AI-native workspace, the system might react to state changes directly.
+
+#+begin_src mermaid
+flowchart TD
+CHANGE[Requirement Changed]
+GRAPH[Work Graph Updated]
+
+QA[QA Plan Revalidated]
+DEP[Dependency Analysis]
+OPS[Rollout Checklist Updated]
+TASK[New Tasks Generated]
+
+CHANGE --> GRAPH
+GRAPH --> QA
+GRAPH --> DEP
+GRAPH --> OPS
+GRAPH --> TASK
+
+#+end_src
+
+Nobody needed to “ask AI.”
+
+The workspace itself became operationally aware.
+
+That feels like a fundamentally different paradigm than “chat with a smart assistant.”
+
+* Organizations As Living Systems
+
+The more I think about it, the less the future resembles productivity software in the traditional sense.
+
+It starts looking more like a distributed systems, multiplayer runtimes, event sourcing architectures that even require another CRDT synchronization layer.
+
+The organization itself becomes a kind of programmable state machine.
+
+Every action emits events.
+
+Every artifact has lineage.
+
+Every workflow has history.
+
+Every decision becomes queryable.
+
+Every dependency becomes traversable.
+
+Agents stop behaving like isolated assistants and start behaving more like participants in a persistent operational runtime.
+
+* Why Current Tools Still Feel Fragmented
+
+What’s interesting is that the industry is already converging toward pieces of this architecture, but from completely different directions.
+
+Coding agents are discovering persistent execution and environment state.
+
+Collaboration tools are discovering embedded AI.
+
+Workflow engines are discovering agents.
+
+Memory systems are discovering entity graphs and temporal context.
+
+CRDT systems are discovering multiplayer synchronization for humans and machines.
+
+Everyone is circling around the same deeper idea from different angles.
+
+But nobody has really unified the stack yet.
+
+Not fully.
+
+* The Missing Primitive
+
+I increasingly suspect the missing primitive is something like a generalized “Work Object.”
+
+Not a document.
+
+Not a ticket.
+
+Not a message.
+
+Something more operationally complete.
+
+A persistent entity that contains:
+
+#+begin_example
+- intent
+- ownership
+- dependencies
+- workflows
+- evaluations
+- artifacts
+- permissions
+- memory
+- history
+#+end_example
+
+
+Not static productivity artifacts, but evolving operational objects.
+
+Once you start thinking in those terms, the boundaries between Jira, GitHub, Notion, Slack, and workflow engines begin to feel surprisingly artificial.
+
+They become different views over the same underlying graph.
+
+* The Future Is Less About AI Chat
+
+The current wave of AI products is still heavily shaped by the chatbot paradigm.
+
+That makes sense historically. Chat is the easiest interface for language models.
+
+But I suspect the long-term opportunity is much larger than “better chat.”
+
+The real opportunity may be building systems where conversations stop being the primary coordination mechanism entirely.
+
+Where organizational state itself becomes intelligent.
+
+Where memory is shared rather than personal.
+
+Where workflows become continuously adaptive.
+
+Where agents and humans coexist inside the same operational substrate.
+
+At that point, collaboration software stops looking like software in the traditional sense.
+
+It starts looking more like infrastructure for organizational cognition.
