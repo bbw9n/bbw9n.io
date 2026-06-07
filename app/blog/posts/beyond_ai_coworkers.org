@@ -13,15 +13,13 @@ flowchart LR
 
 That model is already powerful enough to feel like magic. You ask for a PR summary, a migration plan, a test strategy, a rough roadmap, and seconds later something usable appears. Compared to software from even three years ago, it's genuinely startling. And yet the more I lean on these systems, the more I think this particular interaction shape is transitional — not wrong, just an early draft of where things are heading.
 
-This post is my attempt to say what the next draft might look like. It comes in four moves: first, why producing output was never the real bottleneck; second, why software engineering already stumbled onto the answer; third, what it means to design for state instead of conversation; and finally, what's still missing before any of this is real.
-
 * The Real Bottleneck Was Never Output
 
-Before talking about where AI collaboration is going, it's worth being precise about what organizations actually struggle with. It is almost never the production of text — and once you see that, today's assistant-shaped AI starts to look like it's solving the wrong half of the problem.
+Before talking about where AI collaboration is going, it's worth being precise about what organizations actually struggle with. It is almost never the production of text or even the code now. And once you see that, today's assistant-shaped AI starts to look like it's solving only half of the problem.
 
 ** The Hard Thing About Organizational Work
 
-The deeper I sat with it, the clearer it became that most organizational problems aren't implementation problems. The hard part is almost never "can somebody produce the text?" The hard part is everything around the text:
+The deeper I sat with it, the clearer it became that most organizational problems aren't implementation problems. The hard part is almost never "can somebody produce some work?" The hard part is everything around the /work/:
 
 - keeping context synchronized
 - maintaining shared understanding

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `dark:` utilities respond to a `.dark` class on
+   <html> (toggled by the theme switch) instead of the OS media query. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Hand-drawn font used by Excalidraw-rendered diagrams (self-hosted Latin
    subset, so the diagram text renders sketchy without a CDN or web worker). */
 @font-face {

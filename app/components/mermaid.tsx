@@ -3,12 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 
-mermaid.initialize({
-    startOnLoad: false,
-    theme: "base",
-    securityLevel: "loose",
-    fontFamily: "inherit",
-    themeVariables: {
+// Repeat one color across all 12 mermaid section scales (used by the mindmap
+// for branch fills / labels).
+function scale(prefix: "cScale" | "cScaleLabel", color: string) {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, i) => [`${prefix}${i}`, color]),
+    );
+}
+
+// Mindmap palette: calm light-gray (or dark-gray) branch nodes with a clean
+// contrasting root. Branch fills come from cScale*, branch text from
+// cScaleLabel*, while the root uses git0 / gitBranchLabel0.
+function mermaidThemeVariables(isDark: boolean) {
+    if (isDark) {
+        return {
+            primaryColor: "#2b2b2b",
+            primaryTextColor: "#e5e5e5",
+            primaryBorderColor: "#555555",
+            lineColor: "#666666",
+            secondaryColor: "#2b2b2b",
+            tertiaryColor: "#222222",
+            textColor: "#e5e5e5",
+            mainBkg: "#2b2b2b",
+            nodeBorder: "#555555",
+            git0: "#4a4a4a",
+            gitBranchLabel0: "#e5e5e5",
+            ...scale("cScale", "#2b2b2b"),
+            ...scale("cScaleLabel", "#cfcfcf"),
+        };
+    }
+    return {
         primaryColor: "#e0e0e0",
         primaryTextColor: "#1a1a1a",
         primaryBorderColor: "#333333",
@@ -18,49 +42,22 @@ mermaid.initialize({
         textColor: "#1a1a1a",
         mainBkg: "#ffffff",
         nodeBorder: "#333333",
-        clusterBkg: "#f0f0f0",
-        titleColor: "#1a1a1a",
-        actorLineColor: "#333333",
-        signalColor: "#333333",
-        signalTextColor: "#1a1a1a",
-        labelTextColor: "#1a1a1a",
-        loopTextColor: "#1a1a1a",
-        noteBkgColor: "#f5f5f5",
-        noteTextColor: "#1a1a1a",
-        noteBorderColor: "#333333",
-        activationBorderColor: "#333333",
-        sequenceNumberColor: "#ffffff",
-        // Mindmap palette: calm light-gray branch nodes with a clean
-        // white root. Branch fills come from cScale*, branch text from
-        // cScaleLabel*, while the root uses git0 / gitBranchLabel0.
         git0: "#ffffff",
         gitBranchLabel0: "#333333",
-        cScale0: "#e8e8e8",
-        cScale1: "#e8e8e8",
-        cScale2: "#e8e8e8",
-        cScale3: "#e8e8e8",
-        cScale4: "#e8e8e8",
-        cScale5: "#e8e8e8",
-        cScale6: "#e8e8e8",
-        cScale7: "#e8e8e8",
-        cScale8: "#e8e8e8",
-        cScale9: "#e8e8e8",
-        cScale10: "#e8e8e8",
-        cScale11: "#e8e8e8",
-        cScaleLabel0: "#555555",
-        cScaleLabel1: "#555555",
-        cScaleLabel2: "#555555",
-        cScaleLabel3: "#555555",
-        cScaleLabel4: "#555555",
-        cScaleLabel5: "#555555",
-        cScaleLabel6: "#555555",
-        cScaleLabel7: "#555555",
-        cScaleLabel8: "#555555",
-        cScaleLabel9: "#555555",
-        cScaleLabel10: "#555555",
-        cScaleLabel11: "#555555",
-    },
-});
+        ...scale("cScale", "#e8e8e8"),
+        ...scale("cScaleLabel", "#555555"),
+    };
+}
+
+function applyMermaidTheme(isDark: boolean) {
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: "base",
+        securityLevel: "loose",
+        fontFamily: "inherit",
+        themeVariables: mermaidThemeVariables(isDark),
+    });
+}
 
 // mermaid-to-excalidraw only handles flowchart / sequence / class diagrams.
 // Everything else (e.g. mindmap) falls back to plain mermaid rendering.
@@ -101,6 +98,7 @@ function extractSizeHint(chart: string): { chart: string; maxWidth: number | nul
 async function renderExcalidrawSvg(
     chart: string,
     maxWidth: number | null,
+    isDark: boolean,
 ): Promise<string> {
     ensureExcalidrawAssetPath();
 
@@ -124,7 +122,9 @@ async function renderExcalidrawSvg(
         skipInliningFonts: true,
         appState: {
             exportBackground: false,
-            exportWithDarkMode: false,
+            // In dark mode, invert strokes/text to light so they read on the
+            // dark card instead of the default near-black ink.
+            exportWithDarkMode: isDark,
         },
     });
 
@@ -140,9 +140,27 @@ async function renderExcalidrawSvg(
     return svgEl.outerHTML;
 }
 
+// Tracks whether the page is currently in dark mode (the `.dark` class on
+// <html>), updating live when the theme toggle flips it.
+function useIsDark(): boolean {
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        const el = document.documentElement;
+        const update = () => setIsDark(el.classList.contains("dark"));
+        update();
+        const observer = new MutationObserver(update);
+        observer.observe(el, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
+    }, []);
+
+    return isDark;
+}
+
 export function Mermaid({ chart }: { chart: string }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [svg, setSvg] = useState<string>("");
+    const isDark = useIsDark();
 
     useEffect(() => {
         let cancelled = false;
@@ -154,7 +172,11 @@ export function Mermaid({ chart }: { chart: string }) {
             // but fall back to plain mermaid on anything unsupported or on error.
             if (isExcalidrawSupported(cleaned)) {
                 try {
-                    const result = await renderExcalidrawSvg(cleaned, maxWidth);
+                    const result = await renderExcalidrawSvg(
+                        cleaned,
+                        maxWidth,
+                        isDark,
+                    );
                     if (!cancelled) setSvg(result);
                     return;
                 } catch (error) {
@@ -165,6 +187,7 @@ export function Mermaid({ chart }: { chart: string }) {
                 }
             }
 
+            applyMermaidTheme(isDark);
             const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
             try {
                 const { svg } = await mermaid.render(id, cleaned);
@@ -178,12 +201,12 @@ export function Mermaid({ chart }: { chart: string }) {
         return () => {
             cancelled = true;
         };
-    }, [chart]);
+    }, [chart, isDark]);
 
     return (
         <div
             ref={containerRef}
-            className="my-6 flex justify-center overflow-x-auto rounded-lg bg-neutral-100 p-4"
+            className="my-6 flex justify-center overflow-x-auto rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900"
             dangerouslySetInnerHTML={{ __html: svg }}
         />
     );
