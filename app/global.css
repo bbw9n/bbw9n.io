@@ -1,5 +1,46 @@
 @import "tailwindcss";
 
+/* Hand-drawn font used by Excalidraw-rendered diagrams (self-hosted Latin
+   subset, so the diagram text renders sketchy without a CDN or web worker). */
+@font-face {
+    font-family: "Excalifont";
+    src: url("/fonts/Excalifont-Regular.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Iosevka — body font for the blog (self-hosted, subset to Latin + common
+   typographic punctuation to keep each weight small). */
+@font-face {
+    font-family: "Iosevka";
+    src: url("/fonts/iosevka-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Iosevka";
+    src: url("/fonts/iosevka-400-italic.woff2") format("woff2");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Iosevka";
+    src: url("/fonts/iosevka-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Iosevka";
+    src: url("/fonts/iosevka-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 ::selection {
     background-color: #47a3f3;
     color: #fefefe;
@@ -34,6 +75,8 @@ html.dark .shiki span {
 
 html {
     min-width: 360px;
+    font-family: "Iosevka", ui-monospace, "SF Mono", SFMono-Regular, Menlo,
+        monospace;
 }
 
 .prose .anchor {

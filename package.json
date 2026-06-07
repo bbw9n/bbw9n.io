@@ -6,6 +6,8 @@
         "start": "next start"
     },
     "dependencies": {
+        "@excalidraw/excalidraw": "^0.18.1",
+        "@excalidraw/mermaid-to-excalidraw": "^2.2.2",
         "@shikijs/rehype": "^4.0.2",
         "@tailwindcss/postcss": "4.0.0-alpha.13",
         "@types/node": "20.11.17",
