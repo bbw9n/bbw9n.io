@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { PostTitle } from 'app/components/post-title'
 import { formatDate, getBlogPosts } from 'app/blog/utils'
 
 export function BlogPosts() {
@@ -26,7 +27,7 @@ export function BlogPosts() {
                 {formatDate(post.metadata.publishedAt, false)}
               </p>
               <p className="text-neutral-900 dark:text-neutral-100 tracking-tight">
-                {post.metadata.title}
+                <PostTitle title={post.metadata.displayTitle ?? post.metadata.title} />
               </p>
             </div>
           </Link>

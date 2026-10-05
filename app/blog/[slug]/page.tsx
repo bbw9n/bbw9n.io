@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PostTitle } from "app/components/post-title";
 import { CustomMDX } from "app/components/mdx";
 import { CustomOrg } from "app/components/org";
 import { formatDate, getBlogPosts } from "app/blog/utils";
@@ -100,7 +101,7 @@ export default async function Blog({
             </aside>
             {/* Main content */}
             <h1 className="title font-semibold text-2xl tracking-tighter">
-                {post.metadata.title}
+                <PostTitle title={post.metadata.displayTitle ?? post.metadata.title} />
             </h1>
             <div className="flex justify-between items-center mt-2 mb-8 text-sm">
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">

@@ -1,0 +1,233 @@
+#+TITLE: org-lark: Filling the Seams Between Org and Lark
+#+DATE: 2026-04-27
+#+SUMMARY: I built a two-way bridge between Lark docs and Org files. Going there was easy. Coming back is where the formats started arguing and punctuation got opinions.
+
+I write in Org. My colleagues write in Lark docs. For a long time the two met through a ritual: read the doc in the browser, retype it into Emacs, and when something had to go back, paste it into Lark and spend ten minutes fixing the formatting by hand.
+
+[[https://github.com/bbw9n/org-lark][=org-lark=]] ended that ritual. It pulls a Lark doc down as an Org file, and pushes an Org file back up as a real Lark doc. Under the hood it's Emacs talking to two command-line tools, [[https://github.com/larksuite/cli][=lark-cli=]] and [[https://pandoc.org/][pandoc]], and a lot of careful arguing in between.
+
+I thought this would be a weekend of plumbing. It turned out to be a crash course in what happens when two formats have to agree on a document.
+
+* How It Works
+
+Both directions make the same three moves: take Lark's custom blocks out and leave placeholder tokens behind, let pandoc convert everything else in one pass, then put the blocks back in the other format's syntax. Here's one small doc going both ways.
+
+** Export: Lark to Org
+
+#+begin_src mermaid
+flowchart LR
+    L[Lark doc] -->|lark-cli fetch| A[Lark Markdown]
+    A -->|blocks out| B[Markdown + placeholders]
+    B -->|pandoc| C[Org + placeholders]
+    C -->|blocks in| O[Org file]
+#+end_src
+
+*1. Fetch.* =lark-cli= hands over the doc as Markdown, with Lark's custom tags mixed in:
+
+#+begin_src markdown
+# Launch plan
+
+Owner: <mention-user id="ou_abcdef123456"/>
+
+<callout emoji="bulb" background-color="light-yellow">
+Ship the **beta** before Friday.
+</callout>
+
+<lark-table rows="3" cols="2" header-row="true">
+<lark-tr><lark-td>Task</lark-td><lark-td>Status</lark-td></lark-tr>
+<lark-tr><lark-td>Docs</lark-td><lark-td>**done**</lark-td></lark-tr>
+<lark-tr><lark-td>Demo</lark-td><lark-td>in progress</lark-td></lark-tr>
+</lark-table>
+
+<grid>
+<column width="50%">
+**Pros**: fast
+</column>
+<column width="50%">
+**Cons**: risky
+</column>
+</grid>
+#+end_src
+
+*2. Blocks out.* Every tag is swapped for a token. This is what pandoc actually gets:
+
+#+begin_example
+# Launch plan
+
+Owner: ORGLARKPH10Z
+
+ORGLARKPH1Z
+Ship the **beta** before Friday.
+ORGLARKPH2Z
+
+ORGLARKPH3Z
+
+ORGLARKPH8ZORGLARKPH4Z
+**Pros**: fast
+ORGLARKPH5Z
+ORGLARKPH6Z
+**Cons**: risky
+ORGLARKPH7ZORGLARKPH9Z
+#+end_example
+
+The tokens aren't all the same kind. The callout only loses its /wrapper/ (=PH1= and =PH2=), so the text inside still goes through pandoc and gets its bold converted. The grid works the same way. The whole table, on the other hand, became a single token (=PH3=), because org-lark builds the Org table itself.
+
+*3. Pandoc.* One call converts everything that's left: the heading, the paragraphs, =**beta**= to =*beta*=. It never sees a Lark tag.
+
+*4. Blocks in.* Each token is replaced with the Org version of its block:
+
+#+begin_src org
+,* Launch plan
+Owner: [[lark-user:ou_abcdef123456][@ou_abcdef1]]
+
+#+attr_org: :lark-block callout :emoji bulb :background-color light-yellow
+#+begin_example
+Ship the *beta* before Friday.
+#+end_example
+
+| Task | Status      |
+|------+-------------|
+| Docs | *done*      |
+| Demo | in progress |
+
+#+begin_lark_grid
+#+attr_org: :width 50%
+#+begin_lark_column
+*Pros*: fast
+#+end_lark_column
+#+attr_org: :width 50%
+#+begin_lark_column
+*Cons*: risky
+#+end_lark_column
+#+end_lark_grid
+#+end_src
+
+Each Lark block ends up as the nearest thing Org has:
+
+| Lark                  | Org                                                    |
+|-----------------------+--------------------------------------------------------|
+| =<mention-user/>=     | a =lark-user:= link                                    |
+| =<callout>=           | an example block, with emoji and color as attributes   |
+| =<lark-table>=        | a plain Org table                                      |
+| =<grid>= / =<column>= | custom =lark_grid= / =lark_column= blocks              |
+
+** Publish: Org to Lark
+
+#+begin_src mermaid
+flowchart LR
+    O[Org file] -->|blocks out| A[Org + placeholders]
+    A -->|pandoc| B[Markdown + placeholders]
+    B -->|blocks in| C[Lark Markdown]
+    C -->|lark-cli create / update| L[Lark doc]
+#+end_src
+
+*1. Read.* Start from the Org file above, edited or not.
+
+*2. Blocks out.* org-lark finds the blocks that only make sense to Lark: the =lark-user:= link, the example block tagged =:lark-block callout=, and the grid. It swaps each one for a token:
+
+#+begin_example
+Owner: ORGLARKPH6Z
+
+ORGLARKPH1Z Ship the *beta* before Friday. ORGLARKPH2Z
+
+| Task | Status      |
+|------+-------------|
+| Docs | *done*      |
+| Demo | in progress |
+
+ORGLARKPH5Z
+#+end_example
+
+This direction isn't a mirror image of the first. The table stays as it is, because an Org table is something pandoc already knows how to turn into Markdown.
+
+*3. Pandoc.* Org goes in, GitHub-flavoured Markdown comes out: =*beta*= becomes =**beta**=, and the table becomes a Markdown table.
+
+*4. Blocks in.* The tokens are replaced with Lark's tags, and =lark-cli= creates or updates the doc:
+
+#+begin_src markdown
+Owner: <mention-user id="ou_abcdef123456"/>
+
+<callout emoji="bulb" background-color="light-yellow">
+Ship the **beta** before Friday.
+</callout>
+
+| Task | Status      |
+|------|-------------|
+| Docs | **done**    |
+| Demo | in progress |
+
+<grid>
+...
+</grid>
+#+end_src
+
+The doc is back where it started. Every step in between is a place where something can go wrong, which is what the rest of this post is about.
+
+* Don't Write a Converter
+
+The first rule I set: I'm not writing a Markdown-to-Org converter. Pandoc already did that, and better than I would.
+
+That's why the walkthrough above calls pandoc exactly /once/ in each direction, with the placeholders keeping Lark's blocks out of its way. Getting the placeholders right took longer than you'd think.
+
+My first placeholder looked like =ORGLARKPH1_=. Reasonable, right? Pandoc saw that trailing underscore, decided it might be italics, and politely escaped it to =ORGLARKPH1\_=. My restore step then found nothing to restore, and every block I'd carefully protected silently vanished.
+
+The fix was to end the token with a letter: =ORGLARKPH1Z=. It took me an afternoon to find, and I've had a rule ever since: /if you're hiding something from a text processor, hide it in something it has no opinion about./ Punctuation always has an opinion.
+
+* The Callout With an Identity Crisis
+
+Going from Lark to Org is a bounded problem. Lark has a fixed set of custom blocks, like callouts, grids, and tables, and you write one handler for each.
+
+Coming back is a different problem, because Org forgets things. A Lark callout, the little highlighted box with an emoji, becomes an Org block with a couple of attributes on top. A week later you open that file and have to ask: is this a callout, or just a block I typed myself? And if you deleted the attribute line while editing, the evidence is gone.
+
+My first answer was to guess: if it has an emoji attribute, it's probably a callout. That worked until it didn't. The answer that held was to stop guessing and write the block's identity into the file: every exported block now carries a little =:lark-block callout= tag that says what it is. Publishing reads the tag and knows for sure.
+
+Then pandoc, which has no idea that line matters, sometimes glued it onto the end of a list item. So callouts turned into plain quotes when published, but only when they were inside a list. That cost me a full day of debugging, and the fix was two regexes.
+
+* Decide What to Lose
+
+Lark lets you nest things Org simply can't. A table cell can hold a callout. A grid column can hold a table. A table cell can hold a grid that holds a table.
+
+Org tables don't nest, and nothing I write will change that. So the choice was between crashing, producing garbage, or losing something /on purpose/. Only the last one is a real decision.
+
+=org-lark= picks a fallback for each impossible case. A callout inside a table cell loses its box but keeps its text. A table inside a grid becomes a list. It isn't pretty, but it's readable and predictable. When an export looks odd now, I know exactly which fallback produced it.
+
+If you're building any kind of converter, list the impossible cases early and give each one a named fallback in code. If you don't, the loss still happens, just quietly, in the middle of some regex you wrote three months ago.
+
+* Every Shortcut Comes Back to Collect
+
+Remember the placeholders? Anything inside one is text pandoc never sees. Which means that any =**bold**= hiding in there never gets converted either.
+
+Table cells, agenda items, OKR objectives, document links: all placeholders, all full of Markdown. For two weeks, every table cell I exported had literal =**bold**= in it.
+
+So I ended up writing a small Markdown-to-Org converter after all, the thing I'd sworn not to write. It's about twenty lines, and it has one trick. Markdown bold is =**X**= and Org bold is =*X*=, while Markdown italic is =*X*= and Org italic is =/X/=. Convert bold first, and the italic step eats your new single asterisks. Convert italic first, and it shreds the bold. The way out is to park bold behind an invisible character while italics run, then bring it back.
+
+The lesson I took from it: when you route around a tool for part of your content, you now own that part. Better to notice that on purpose than two weeks later.
+
+* Read the Seams
+
+The most useful thing I built wasn't a feature. It was a debug log.
+
+When a pipeline is six text transformations deep, "the output is wrong" is a useless bug report, even when you're reporting it to yourself. So =M-x org-lark-toggle-debug= opens a log that records every step. Here's the export of the doc above:
+
+#+begin_example
+[20:52:57.081] pipeline: 543 chars input
+[20:52:57.081]   code blocks → 0 placeholders
+[20:52:57.082]   <callout> 2 match(es)
+[20:52:57.082]   <lark-table> 1 match(es)
+[20:52:57.082]   <grid> 6 match(es)
+[20:52:57.083]   self-closing: 1 match(es)
+[20:52:57.083]   tags normalized → 10 placeholders, 208 chars for pandoc
+[20:52:57.092] $ pandoc -f markdown -t org --wrap\=none /tmp/org-lark-VLNRbJ.md
+[20:53:00.760]   → 3.7s, exit 0, 244 bytes
+[20:53:00.762] pipeline: 3.68s total
+#+end_example
+
+The publish side goes further and dumps the full text at every seam: what goes into pandoc, what comes out, and what's sent to Lark. The intermediate texts in the walkthrough above came straight from those dumps.
+
+Nearly every hard bug in this project was found by putting two of these dumps side by side and spotting what changed. "It's wrong /after stage four/" is something you can fix. If I started over, I'd write that log before the second transformation, not after the tenth.
+
+* Closing
+
+A format bridge is a negotiation, not a translation. The two sides really can't say all the same things, and pretending they can gives you a tool that works on your test document and mangles everyone else's.
+
+What makes it workable is being honest every place something gets lost. Write a block's identity into the file instead of guessing it later. Pick a fallback for each impossible case. Only hide from the converter what you're ready to convert yourself. And log every seam.

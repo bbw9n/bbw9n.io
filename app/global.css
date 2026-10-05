@@ -129,7 +129,8 @@ html {
     line-height: 1.5;
 }
 
-.prose img {
+.prose img,
+.prose video {
     @apply m-0 w-full rounded-lg;
 }
 
@@ -151,6 +152,14 @@ html {
 
 .prose h4 {
     @apply text-lg font-medium tracking-tight mt-6 mb-2;
+}
+
+.prose blockquote {
+    @apply border-l-4 border-neutral-300 dark:border-neutral-700 pl-4 italic text-neutral-600 dark:text-neutral-400;
+}
+
+.prose blockquote p {
+    @apply text-inherit;
 }
 
 .prose strong {

@@ -57,7 +57,7 @@ function rehypeExtractMermaid() {
 }
 
 const processor = unified()
-    .use(uniorgParse)
+    .use(uniorgParse, { useSubSuperscripts: "{}" })
     .use(uniorg2rehype)
     .use(rehypeOrgExample)
     .use(rehypeExtractMermaid)
@@ -75,7 +75,7 @@ const processor = unified()
         cssVariablePrefix: "--shiki-",
         defaultColor: false,
     })
-    .use(rehypeStringify);
+    .use(rehypeStringify, { allowDangerousHtml: true });
 
 export async function CustomOrg({ source }: { source: string }) {
     const result = String(await processor.process(source));

@@ -3,6 +3,7 @@ import path from 'path'
 
 type Metadata = {
   title: string
+  displayTitle?: string
   publishedAt: string
   summary: string
   image?: string
@@ -43,7 +44,10 @@ function parseOrgFrontmatter(fileContent: string) {
     if (match) {
       let key = match[1].toLowerCase()
       let value = match[2].trim()
-      if (key === 'title') metadata.title = value
+      if (key === 'title') {
+        metadata.displayTitle = value
+        metadata.title = value.replace(/_\{([^}]*)\}/g, '_$1')
+      }
       else if (key === 'date') metadata.publishedAt = value
       else if (key === 'summary') metadata.summary = value
       else if (key === 'image') metadata.image = value
