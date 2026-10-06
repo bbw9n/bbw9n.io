@@ -1,10 +1,10 @@
 #+TITLE: Write_{On}: AI for Your Own Writing Workflow
 #+DATE: 2026-10-02
-#+SUMMARY: Jason Fried's Write_On post inspired me to build its ideas into Emacs. Here's how I think AI fits into a personal writing workflow: giving you options, reading your draft, and cutting, without taking the writing away from you.
+#+SUMMARY: Jason Fried's Write_On post inspired me to build its ideas into Emacs. I think AI fits into a personal writing workflow by giving you options, reading your draft, and cutting, without taking the writing away from you.
 
 [[https://x.com/jasonfried/status/2105403067793584590][Jason Fried's Write_{On} post]] was so inspiring that I couldn't stop thinking about it, so I built its ideas into an Emacs package: [[https://github.com/bbw9n/write-on.el][=write-on.el=]]. The rule I ended up with is simple: *the model suggests, I write.* It gives me more options, reads my draft with fresh eyes, and proposes cuts. Every change still goes through me.
 
-* The Idea in Brief
+* The idea in brief
 
 Write_{On} calls it /alternative control/. A word, sentence, or paragraph can hold several versions, and you choose which one shows. Nothing you write gets thrown away just because you weren't sure yet.
 
@@ -12,17 +12,17 @@ Write_{On} calls it /alternative control/. A word, sentence, or paragraph can ho
 - *Ghost:* dim a sentence instead of deleting it, and read the paragraph without it.
 - *Overflow:* a pane next to the page for cuts that are good but don't belong here.
 
-Each of these makes it safe to try things. That turns out to be exactly the right foundation for bringing AI into writing.
+Each of these makes it safe to try things, which is the foundation you want before bringing AI into writing.
 
 #+begin_export html
 <video src="/videos/write-on-el.mp4" controls muted playsinline preload="metadata"></video>
 #+end_export
 
-* AI in a Personal Writing Workflow
+* AI in a personal writing workflow
 
 Most AI writing tools work the same way: you hand over a paragraph and get a different paragraph back. It reads fine, but it's no longer quite yours, and you have to diff it in your head to see what changed. You've stopped writing and started reviewing someone else's draft.
 
-I want something different from a model when I write. I don't want it to write /for/ me. I want it to do the things a good editor sitting beside me would do. Here's how that breaks down.
+When I write, I want the model to do what a good editor sitting beside me would do, not to write /for/ me.
 
 ** Ask for options, not answers
 
@@ -30,7 +30,7 @@ When a word or sentence feels off, I usually know /that/ it's wrong before I kno
 
 In =write-on=, asking for alternatives sends the span along with the paragraph around it, so suggestions match the voice and fit the place. They come back as more entries in the span's list, next to my own versions. My original is still one of the choices. I scroll through them in place, see each one in the sentence, and pick, or ignore them all.
 
-The model widens the set of choices. The choosing stays with me. Often none of the suggestions is right, but seeing six wrong ones is what shows me what the right one should be. Then I type it myself.
+The model widens the set of choices, and the choosing stays with me. Often none of the suggestions is right, but seeing six wrong ones is what shows me what the right one should be. Then I type it myself.
 
 ** A second reader, not a ghostwriter
 
@@ -44,7 +44,7 @@ The Lab reads the region or the whole document and /marks/ things instead of fix
 - words that don't fit the tone
 - hedges and filler
 
-Each mark is an underline with a short note, and I step through them one at a time. Some I fix, some I disagree with and skip. That's the point: a note is something you can disagree with, and a rewrite isn't.
+Each mark is an underline with a short note, and I step through them one at a time. Some I fix; some I disagree with and skip. A rewrite wouldn't let me disagree.
 
 ** Make mechanical fixes reversible
 
@@ -58,11 +58,11 @@ Here, a trim proposes cuts by fading words in place on the page. You read the pa
 
 ** Stay in the flow
 
-A writing tool can't make you wait. Requests run in the background with a small spinner, and you keep typing. If you've moved on by the time the suggestions arrive, they wait for you instead of grabbing your attention. If you edited the text the review was about, the stale results are dropped instead of being put in the wrong places.
+A writing tool can't make you wait. Requests run in the background with a small spinner, and you keep typing. If you've moved on by the time the suggestions arrive, they wait for you instead of grabbing your attention. If you edited the text the review was about, the stale results are dropped so they don't land in the wrong places.
 
 ** It's /your/ workflow
 
-Because it runs inside Emacs on top of [[https://github.com/karthink/gptel][gptel]], the model is whatever you've configured: Claude, a local model, anything gptel supports. The system prompt is a variable you can change. Documents stay plain Markdown or Org; all the alternatives and ghosts are stored separately. The AI fits into how you already write, instead of you moving your writing into someone else's app.
+Because it runs inside Emacs on top of [[https://github.com/karthink/gptel][gptel]], the model is whatever you've configured: Claude, a local model, anything gptel supports. The system prompt is a variable you can change. Documents stay plain Markdown or Org; all the alternatives and ghosts are stored separately.
 
 * Closing
 

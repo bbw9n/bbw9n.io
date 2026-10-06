@@ -1,8 +1,8 @@
 #+TITLE: Beyond AI Coworkers
 #+DATE: 2026-06-06
-#+SUMMARY: AI-native collaboration isn't about smarter chatbots. It's about turning organizational work itself into a shared, continuously evolving operational graph that humans and agents maintain together.
+#+SUMMARY: AI-native collaboration needs more than smarter chatbots: organizational work itself has to become a shared, continuously evolving operational graph that humans and agents maintain together.
 
-For the past year I've had a nagging feeling whenever people talk about /AI coworkers/. It isn't that the idea is wrong — quite the opposite. Tools like Claude Code, Codex, Devin, and Cursor have already changed how engineering work happens day to day, and that shift is real. But the framing always feels like it's pointing at something one step away from the actual idea.
+For the past year I've had a nagging feeling whenever people talk about /AI coworkers/. The idea isn't wrong. Tools like Claude Code, Codex, Devin, and Cursor have already changed how engineering work happens day to day. But the framing always feels like it's pointing at something one step away from the actual idea.
 
 The industry mostly seems to assume the future looks like this: a human asks an AI to do something, and the AI becomes the center of gravity.
 
@@ -11,15 +11,15 @@ flowchart LR
     H[Human] -->|asks| A[AI Assistant] -->|produces| W[Work]
 #+end_src
 
-That model is already powerful enough to feel like magic. You ask for a PR summary, a migration plan, a test strategy, a rough roadmap, and seconds later something usable appears. Compared to software from even three years ago, it's genuinely startling. And yet the more I lean on these systems, the more I think this particular interaction shape is transitional — not wrong, just an early draft of where things are heading.
+That model is already powerful enough to feel like magic. You ask for a PR summary, a migration plan, a test strategy, a rough roadmap, and seconds later something usable appears. Compared to software from even three years ago, it's startling. Still, the more I lean on these systems, the more I think this particular interaction shape is transitional. It isn't wrong, just an early draft of where things are heading.
 
-* The Real Bottleneck Was Never Output
+* The real bottleneck was never output
 
-Before talking about where AI collaboration is going, it's worth being precise about what organizations actually struggle with. It is almost never the production of text or even the code now. And once you see that, today's assistant-shaped AI starts to look like it's solving only half of the problem.
+Organizations almost never struggle with producing text, or even code anymore. Once you see that, today's assistant-shaped AI looks like it's solving only half of the problem.
 
-** The Hard Thing About Organizational Work
+** The hard thing about organizational work
 
-The deeper I sat with it, the clearer it became that most organizational problems aren't implementation problems. The hard part is almost never "can somebody produce some work?" The hard part is everything around the /work/:
+The longer I sat with it, the clearer it became that most organizational problems aren't implementation problems. The hard part is rarely "can somebody produce some work?" It's everything around the /work/:
 
 - keeping context synchronized
 - maintaining shared understanding
@@ -28,7 +28,7 @@ The deeper I sat with it, the clearer it became that most organizational problem
 - coordinating handoffs
 - knowing the current operational state
 
-Put another way, organizations are fundamentally state-management systems. It sounds reductive when you first say it out loud, but I've come to believe it's basically true. A startup isn't just people talking to each other; it's a constantly evolving graph of decisions, requirements, dependencies, tasks, ownership, approvals, code, incidents, launches, experiments, and metrics — all referencing each other.
+Put another way, organizations are state-management systems. That sounds reductive when you say it out loud, but I've come to believe it's basically true. Beyond people talking to each other, a startup is a constantly evolving graph of decisions, requirements, dependencies, tasks, ownership, approvals, code, incidents, launches, experiments, and metrics, all referencing each other.
 
 The trouble is that modern collaboration software shreds that graph across a dozen disconnected surfaces:
 
@@ -40,34 +40,34 @@ The trouble is that modern collaboration software shreds that graph across a doz
 - the metric lives in Looker
 - the actual knowledge lives nowhere in particular
 
-So humans end up being the synchronization layer between all these systems. We are the integration glue, copying state from one tool to the next and holding the connective tissue in our heads. Once you start seeing organizational work that way, a lot of today's AI tooling starts to feel oddly boxed in.
+So humans end up as the synchronization layer between all these systems. We are the integration glue, copying state from one tool to the next and holding the connective tissue in our heads. Once you see organizational work that way, a lot of today's AI tooling feels oddly boxed in.
 
-** AI Is Still Living Outside The System
+** AI is still living outside the system
 
 Most AI products today behave like external assistants. You ask a question, the model answers, and then *you* are the one who carries that answer back into the organization. Even as products get more "agentic," the underlying mental model usually stays chat-centric: the AI knows things because you told it things, and its understanding lives inside a context window and a conversation history.
 
-But organizations don't actually run on conversations. They run on persistent state. That distinction keeps feeling more important the longer I think about it — the conversation is where work gets discussed, but the state is where work actually lives.
+Organizations run on persistent state, though. Conversation is where work gets discussed, and state is where work actually lives. That difference seems more important the longer I think about it.
 
-* What Software Engineering Already Got Right
+* What software engineering already got right
 
-If the problem is shared state, then the place to look for a solution is wherever shared state already works well. For me that place is obvious in hindsight: it's the toolchain coding agents happen to live in. They didn't get smarter than office AI by accident — they inherited better ground to stand on.
+If the problem is shared state, look wherever shared state already works well. In hindsight the place is obvious: the toolchain coding agents happen to live in. They didn't get ahead of office AI by accident; they inherited better ground to stand on.
 
-** GitHub Accidentally Predicted The Future
+** GitHub accidentally predicted the future
 
 I think one reason coding agents feel so much more capable than general-purpose office AI is that software engineering already has an unusually rich operational graph to stand on.
 
-GitHub isn't fundamentally a chat app. It's a state machine. The objects already exist, the relationships between them already exist, and the lineage from idea to deployment is already explicit:
+At heart GitHub is a state machine, not a chat app. The objects already exist, the relationships between them already exist, and the lineage from idea to deployment is already explicit:
 
 #+begin_src mermaid
 flowchart LR
     Issue --> PR --> Commit --> Test --> Deploy
 #+end_src
 
-Crucially, humans and automation manipulate the *same* shared artifacts. Engineers open PRs, CI runs the tests, deploy bots ship the code, review bots annotate the diff, and observability tools attach failures back to the change that caused them. The collaboration revolves around evolving operational state rather than conversation. That shared substrate, more than any model capability, is why coding agents are racing ahead of other forms of AI collaboration. The structure was already there for them to plug into.
+Humans and automation manipulate the *same* shared artifacts. Engineers open PRs, CI runs the tests, deploy bots ship the code, review bots annotate the diff, and observability tools attach failures back to the change that caused them. The collaboration revolves around evolving operational state instead of conversation. That shared substrate, more than any model capability, is why coding agents are racing ahead of other forms of AI collaboration: the structure was already there for them to plug into.
 
-** Thinking About It Backwards
+** Thinking about it backwards
 
-At some point I realized I'd been picturing AI collaboration the wrong way around. The dominant framing is =Human → AI → Work=: a person requests work from an assistant. But increasingly I think the real shape is one where the work itself sits in the middle, and both the human and the agent operate on it directly.
+At some point I realized I'd been picturing AI collaboration the wrong way around. The dominant framing is =Human → AI → Work=: a person requests work from an assistant. Increasingly I think the real shape puts the work itself in the middle, with both the human and the agent operating on it directly.
 
 #+begin_src mermaid
 %% maxw: 320 %%
@@ -76,19 +76,19 @@ flowchart TD
     W[Shared Work Graph] <--> A[AI Agent]
 #+end_src
 
-This isn't about making AI subordinate to humans, or humans subordinate to AI. It's that the *work* becomes primary. The organizational state is the center of gravity, and humans and agents are both just participants reading and writing to it. That sounds like a subtle reordering, but I think it changes the entire architecture of collaboration software.
+Neither side is subordinate to the other here, because the *work* is primary. The organizational state is the center of gravity, and humans and agents are both participants reading and writing to it. It sounds like a subtle reordering, but I think it changes the entire architecture of collaboration software.
 
-* Designing For State, Not Conversation
+* Designing for state instead of conversation
 
-Take that reordering seriously and the design center of gravity moves. The conversation stops being the container the work lives in and becomes just one of many events that act on a shared, persistent graph. That single shift changes both how the software should behave and what kind of system it really is.
+Take that reordering seriously and the conversation stops being the container the work lives in. It becomes one of many events acting on a shared, persistent graph, and that changes both how the software should behave and what kind of system it is.
 
-** From Conversation-Centric To State-Centric
+** From conversation-centric to state-centric
 
-Today most AI systems treat the conversation as the primary container. The problem is that conversations make terrible long-term operational memory. They're ephemeral, they branch badly, they're hard to keep in sync, and they decay as soon as more than a handful of people are involved.
+Today most AI systems treat the conversation as the primary container, and conversations make terrible long-term operational memory. They're ephemeral, they branch badly, they're hard to keep in sync, and they decay as soon as more than a handful of people are involved.
 
-Organizations already know this, which is why we spend so much effort translating conversations into structured artifacts — docs, tickets, plans, PRs, reports, dashboards. The conversation is the scratchpad; the artifact is the thing that survives. So the obvious question is: what if those artifacts were the primary reality from the start, and the workspace itself kept them coherent?
+Organizations already know this, which is why we spend so much effort translating conversations into structured artifacts: docs, tickets, plans, PRs, reports, dashboards. The conversation is the scratchpad, and the artifact is what survives. So what if those artifacts were the primary reality from the start, and the workspace itself kept them coherent?
 
-Imagine a PM updates a requirement. That one edit doesn't flow down a tidy line — it scatters outward into every surface and every person who happens to depend on it, and each branch is a separate thing somebody has to remember to chase down:
+Imagine a PM updates a requirement. That one edit scatters outward into every surface and every person who happens to depend on it, and each branch is a separate thing somebody has to remember to chase down:
 
 #+begin_src mermaid
 mindmap
@@ -108,7 +108,7 @@ mindmap
                 discovers it in prod
 #+end_src
 
-Every branch there is a human remembering to do something, and the whole sprawl is held together by attention that doesn't scale. In a genuinely AI-native workspace, the system could react to the state change directly instead — collapsing that mess back into a single coherent update:
+Every branch there is a human remembering to do something, and the whole sprawl is held together by attention that doesn't scale. In an AI-native workspace, the system could react to the state change directly and collapse that mess back into a single coherent update:
 
 #+begin_src mermaid
 flowchart TD
@@ -119,11 +119,11 @@ flowchart TD
     GRAPH --> TASK[New tasks generated]
 #+end_src
 
-Nobody had to "ask the AI" for any of it. The workspace itself became operationally aware. That feels like a categorically different thing than chatting with a smart assistant.
+Nobody had to "ask the AI" for any of it, because the workspace itself became operationally aware. That feels categorically different from chatting with a smart assistant.
 
-** Organizations As Living Systems
+** Organizations as living systems
 
-The more I follow this thread, the less the future looks like productivity software and the more it looks like an event-sourcing-based distributed system — even with another CRDT layer for synchronizing humans and machines against the same state — where the organization starts to resemble a programmable state machine:
+The more I follow this thread, the less the future looks like productivity software and the more it looks like an event-sourcing-based distributed system (even with another CRDT layer for synchronizing humans and machines against the same state), where the organization starts to resemble a programmable state machine:
 
 #+begin_example
 - every action emits an event
@@ -133,15 +133,15 @@ The more I follow this thread, the less the future looks like productivity softw
 - every dependency is traversable
 #+end_example
 
-In that world, agents stop behaving like isolated assistants you summon, and start behaving like participants living inside a persistent operational runtime alongside you.
+In that world, agents stop behaving like isolated assistants you summon and start behaving like participants living inside a persistent operational runtime alongside you.
 
-* What's Still Missing
+* What's still missing
 
-None of this is a clean greenfield. The industry is already building toward it from several directions at once — it just hasn't named the thing it's converging on, and it's missing the one primitive that would let the pieces snap together.
+None of this is greenfield. The industry is already building toward it from several directions at once. It just hasn't named the thing it's converging on, and it's missing the one primitive that would let the pieces snap together.
 
-** Why Current Tools Still Feel Fragmented
+** Why current tools still feel fragmented
 
-What's interesting is that the industry is already converging on pieces of this, just from completely different starting points:
+The pieces are already showing up, from completely different starting points:
 
 - coding agents are discovering persistent execution and environment state
 - collaboration tools are discovering embedded AI
@@ -149,11 +149,11 @@ What's interesting is that the industry is already converging on pieces of this,
 - memory systems are discovering entity graphs and temporal context
 - CRDT systems are discovering multiplayer sync for humans and machines
 
-Everyone is circling the same deeper idea from a different angle. But nobody has unified the stack yet — not fully.
+Everyone is circling the same idea from a different angle, but nobody has fully unified the stack yet.
 
-** The Missing Primitive
+** The missing primitive
 
-I increasingly suspect the missing piece is something like a generalized *Work Object*. Not a document, not a ticket, not a message, but something more operationally complete — a persistent entity that carries:
+I increasingly suspect the missing piece is something like a generalized *Work Object*: a persistent entity, more operationally complete than a document, ticket, or message, that carries:
 
 - intent
 - ownership
@@ -165,10 +165,10 @@ I increasingly suspect the missing piece is something like a generalized *Work O
 - memory
 - history
 
-Not a static productivity artifact, but an evolving operational object. Once you start thinking in those terms, the boundaries between Jira, GitHub, Notion, Slack, and workflow engines start to feel surprisingly arbitrary. They stop being separate products and start looking like different views over the same underlying graph.
+Unlike a static productivity artifact, it keeps evolving. Once you think in those terms, the boundaries between Jira, GitHub, Notion, Slack, and workflow engines feel surprisingly arbitrary, and they start looking like different views over the same underlying graph.
 
-** Infrastructure For Organizational Cognition
+** Infrastructure for organizational cognition
 
-The real prize is systems where conversation stops being the primary coordination mechanism at all, where organizational state itself becomes intelligent, where memory is shared rather than trapped in individual heads, where workflows adapt continuously, and where agents and humans coexist inside the same operational substrate.
+The prize is systems where conversation is no longer the primary coordination mechanism at all, organizational state itself becomes intelligent, memory is shared instead of trapped in individual heads, workflows adapt continuously, and agents and humans coexist inside the same operational substrate.
 
-At that point, collaboration software stops looking like software in the familiar sense. It starts looking more like infrastructure for organizational cognition.
+At that point, collaboration software looks less like software in the familiar sense and more like infrastructure for organizational cognition.

@@ -1,38 +1,38 @@
 #+TITLE: SGLang vs vLLM
 #+DATE: 2026-01-08
-#+SUMMARY: A deep-dive comparison of the two dominant open-source LLM inference engines — covering architecture, key components, performance benchmarks, industry adoption, and decision criteria.
+#+SUMMARY: A comparison of the two dominant open-source LLM inference engines: architecture, key components, performance benchmarks, industry adoption, and decision criteria.
 
 * 1. Overview
 
-Both SGLang and vLLM are high-performance, open-source inference engines for serving large language models. They share a common lineage — both originated from UC Berkeley research labs, and both have rapidly grown into production-grade systems powering some of the world's largest AI deployments. However, they take fundamentally different architectural approaches to solving the same problem: making LLM inference fast, efficient, and cost-effective.
+Both SGLang and vLLM are high-performance, open-source inference engines for serving large language models. They share a lineage: both came out of UC Berkeley research labs, and both have grown quickly into production systems behind some of the world's largest AI deployments. They take different architectural approaches to the same problem, which is making LLM inference fast, efficient, and cost-effective.
 
-** SGLang — Structured Generation Language
+** SGLang (Structured Generation Language)
 
-Co-designs a frontend DSL with a backend runtime. Its core innovation is *RadixAttention* — a radix-tree-based KV cache manager that enables automatic, fine-grained prefix sharing across requests. Features a zero-overhead CPU scheduler, cache-aware load balancer, and compressed FSM for structured outputs. Optimized for multi-turn, agentic, and structured workloads.
+SGLang co-designs a frontend DSL with a backend runtime. Its core innovation is *RadixAttention*, a radix-tree-based KV cache manager that shares prefixes across requests automatically and at fine granularity. It also has a zero-overhead CPU scheduler, a cache-aware load balancer, and a compressed FSM for structured outputs. It is optimized for multi-turn, agentic, and structured workloads.
 
-- *Origin:* LMSYS Org (Lianmin Zheng, Ying Sheng)
-- *First release:* Jan 2024
-- *GitHub stars:* ~20k+ (as of early 2026)
-- *Hosted by:* LMSYS (PyTorch ecosystem)
+- Origin: LMSYS Org (Lianmin Zheng, Ying Sheng)
+- First release: Jan 2024
+- GitHub stars: ~20k+ (as of early 2026)
+- Hosted by: LMSYS (PyTorch ecosystem)
 
-** vLLM — Virtual Large Language Model
+** vLLM (Virtual Large Language Model)
 
-Pioneered *PagedAttention*, an OS-inspired virtual memory system for KV cache management. Focuses on maximum hardware compatibility, broad model support, and enterprise-ready stability. Its plugin-based architecture supports diverse backends, quantization formats, and hardware targets. The most widely-adopted OSS inference engine by install base.
+vLLM pioneered *PagedAttention*, an OS-inspired virtual memory system for KV cache management. It focuses on maximum hardware compatibility, broad model support, and stability for enterprise use. Its plugin-based architecture supports many backends, quantization formats, and hardware targets. By install base, it is the most widely adopted OSS inference engine.
 
-- *Origin:* UC Berkeley (Woosuk Kwon)
-- *First release:* Jun 2023
-- *GitHub stars:* ~50k+ (as of early 2026)
-- *Hosted by:* PyTorch Foundation (via LF AI)
+- Origin: UC Berkeley (Woosuk Kwon)
+- First release: Jun 2023
+- GitHub stars: ~50k+ (as of early 2026)
+- Hosted by: PyTorch Foundation (via LF AI)
 
-* 2. Architecture Comparison
+* 2. Architecture comparison
 
-While both engines aim to maximize GPU utilization for LLM serving, they differ fundamentally in design philosophy. SGLang co-designs the programming interface with the runtime to optimize for structured, multi-step generation workflows. vLLM focuses on being a modular, pluggable inference engine with the broadest possible compatibility surface.
+Both engines aim to maximize GPU utilization for LLM serving, but their design philosophies differ. SGLang co-designs the programming interface with the runtime to optimize structured, multi-step generation workflows. vLLM aims to be a modular, pluggable inference engine with the broadest possible compatibility.
 
-** SGLang Architecture
+** SGLang architecture
 
 [[/images/sglang-architecture.svg]]
 
-*** SGLang Inference Dataflow
+*** SGLang inference dataflow
 
 #+begin_src mermaid
 sequenceDiagram
@@ -58,23 +58,23 @@ sequenceDiagram
     Scheduler-->>Client: 11. Stream tokens
 #+end_src
 
-*SGLang Flow Explanation:*
+How a request moves through SGLang:
 
-1. *Cache-aware routing (Steps 1-3):* The Rust-based sgl-router predicts which backend instance will have the highest cache hit rate for this request's prefix, achieving up to 3.8x higher hit rates than round-robin.
+1. Cache-aware routing (steps 1-3): The Rust-based sgl-router predicts which backend instance will have the highest cache hit rate for the request's prefix. This gives up to 3.8x higher hit rates than round-robin.
 
-2. *Radix tree lookup (Steps 4-5):* The scheduler traverses the radix tree to find the longest matching prefix. Shared prefixes (system prompts, few-shot examples) are discovered automatically — no configuration needed.
+2. Radix tree lookup (steps 4-5): The scheduler walks the radix tree to find the longest matching prefix. It finds shared prefixes (system prompts, few-shot examples) automatically, with no configuration.
 
-3. *Zero-overhead scheduling (Step 6):* While the GPU processes the current batch, the CPU concurrently prepares the next batch. This overlap eliminates CPU scheduling stalls that can waste up to 50% of time in other engines.
+3. Zero-overhead scheduling (step 6): While the GPU processes the current batch, the CPU prepares the next one. This overlap removes the CPU scheduling stalls that can waste up to 50% of time in other engines.
 
-4. *Execution with jump-forward (Steps 7-8):* FlashInfer kernels execute attention. For structured output, xGrammar's compressed FSM can skip deterministic tokens entirely, bypassing 30-50% of GPU forward passes.
+4. Execution with jump-forward (steps 7-8): FlashInfer kernels run attention. For structured output, xGrammar's compressed FSM can skip deterministic tokens entirely, bypassing 30-50% of GPU forward passes.
 
-5. *Cache update and streaming (Steps 9-11):* New KV cache is inserted into the radix tree for future reuse. Tokens stream back to the client as they're generated.
+5. Cache update and streaming (steps 9-11): New KV cache goes into the radix tree for later reuse, and tokens stream back to the client as they're generated.
 
-** vLLM Architecture (V1 Engine)
+** vLLM architecture (V1 engine)
 
 [[/images/vllm-architecture.svg]]
 
-*** vLLM Inference Dataflow
+*** vLLM inference dataflow
 
 #+begin_src mermaid
 sequenceDiagram
@@ -107,39 +107,39 @@ sequenceDiagram
     Engine-->>Client: 15. Stream tokens
 #+end_src
 
-*vLLM Flow Explanation:*
+How a request moves through vLLM:
 
-1. *Request handling (Steps 1-3):* The API server tokenizes the input and queues the request in the core engine. vLLM's OpenAI-compatible API is the most mature in the ecosystem.
+1. Request handling (steps 1-3): The API server tokenizes the input and queues the request in the core engine. vLLM's OpenAI-compatible API is the most mature in the ecosystem.
 
-2. *Block allocation (Steps 4-6):* The block manager allocates logical blocks for the sequence. Like OS virtual memory, blocks are fixed-size (typically 16 tokens) and mapped to physical GPU memory on demand. Automatic Prefix Caching (APC) checks for reusable prefixes.
+2. Block allocation (steps 4-6): The block manager allocates logical blocks for the sequence. As in OS virtual memory, blocks are fixed size (typically 16 tokens) and mapped to physical GPU memory on demand. Automatic Prefix Caching (APC) checks for reusable prefixes.
 
-3. *Continuous batching loop (Steps 7-12):* Each iteration dynamically forms a batch from all active requests. The GPU executes attention using block table indirection — physical blocks can be non-contiguous. New tokens are appended; if blocks are shared, copy-on-write creates new physical blocks.
+3. Continuous batching loop (steps 7-12): Each iteration forms a batch from all active requests. The GPU executes attention through block table indirection, so physical blocks don't need to be contiguous. New tokens are appended, and if blocks are shared, copy-on-write creates new physical blocks.
 
-4. *Memory management (Steps 13-14):* Under memory pressure, vLLM can preempt lower-priority requests, swapping their KV cache to CPU memory or recomputing later. This flexibility enables handling bursty workloads gracefully.
+4. Memory management (steps 13-14): Under memory pressure, vLLM can preempt lower-priority requests and either swap their KV cache to CPU memory or recompute it later. This is how it copes with bursty workloads.
 
-5. *Streaming (Step 15):* Tokens stream back as they're generated. The iteration loop continues until all sequences complete.
+5. Streaming (step 15): Tokens stream back as they're generated, and the loop continues until all sequences complete.
 
-** Core Philosophical Differences
+** Core philosophical differences
 
 | Dimension             | SGLang                                                                       | vLLM                                                                          |
 |-----------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------|
 | *Design philosophy*   | Co-designed frontend language + runtime; treats inference as a /program/     | Modular engine with pluggable backends; treats inference as /request serving/  |
-| *KV cache strategy*   | RadixAttention — radix tree, automatic prefix discovery, content-addressable | PagedAttention — OS-style virtual memory, fixed-size blocks, block tables      |
+| *KV cache strategy*   | RadixAttention: radix tree, automatic prefix discovery, content-addressable  | PagedAttention: OS-style virtual memory, fixed-size blocks, block tables       |
 | *Scheduler*           | Zero-overhead; overlaps CPU scheduling with GPU compute                      | Dynamic scheduler with preemption support; V1 engine rewrite                  |
 | *Structured output*   | xGrammar with compressed FSM + jump-forward decoding (up to 10x faster)     | Guided decoding via xGrammar / Outlines integration                           |
 | *Load balancing*      | sgl-router: Rust-based, cache-aware routing (1.9x throughput gain)          | llm-d: K8s-native with prefix-aware routing (via LMCache)                     |
 | *Codebase size*       | ~4K lines core scheduler (lean, focused)                                     | Larger codebase (broad compatibility layer)                                   |
 | *Primary language*    | Python + Rust (router) + CUDA/FlashInfer                                     | Python + C++/CUDA + multi-backend support                                     |
 
-* 3. KV Cache Management: The Core Differentiator
+* 3. KV cache management: the core differentiator
 
-The KV cache is the dominant memory consumer during LLM inference. How each engine manages it is perhaps the single most important architectural decision. Both solve the same problem — eliminate memory waste and enable sharing — but with very different data structures and trade-offs.
+The KV cache is the largest memory consumer during LLM inference, and how each engine manages it is perhaps its single most important architectural decision. Both try to eliminate memory waste and enable sharing, but they use very different data structures and make different trade-offs.
 
-** SGLang: RadixAttention (Radix Tree)
+** SGLang: RadixAttention (radix tree)
 
-SGLang stores KV cache tensors in a *radix tree* (compressed trie) where edges are labeled with variable-length token sequences. This enables automatic, fine-grained prefix sharing across all requests — without any manual configuration.
+SGLang stores KV cache tensors in a *radix tree* (compressed trie) whose edges are labeled with variable-length token sequences. Prefix sharing across all requests happens automatically and at fine granularity, with no manual configuration.
 
-*How it works:*
+How it works:
 
 1. When a new request arrives, the system traverses the radix tree matching token-by-token
 2. Shared prefixes (e.g., system prompts) are found automatically
@@ -164,15 +164,13 @@ SGLang stores KV cache tensors in a *radix tree* (compressed trie) where edges a
     Only the unique suffixes need fresh computation!
 #+end_example
 
-*Key advantage:* Dynamic, content-addressable. The system "learns" caching patterns from actual traffic. Handles branching conversations, few-shot examples, agentic loops, and tree-of-thought workloads automatically.
+The cache is dynamic and content-addressable, so the system "learns" caching patterns from actual traffic. It handles branching conversations, few-shot examples, agentic loops, and tree-of-thought workloads automatically, which makes it a good fit for multi-turn chat, shared system prompts, RAG with common prefixes, and agentic workflows with branching.
 
-*Best for:* Multi-turn chat, shared system prompts, RAG with common prefixes, agentic workflows with branching.
+** vLLM: PagedAttention (virtual memory paging)
 
-** vLLM: PagedAttention (Virtual Memory Paging)
+vLLM breaks the KV cache into fixed-size *blocks* (typically 16 tokens each) that can sit non-contiguously in GPU memory. A block table maps logical blocks to physical blocks, an idea taken directly from OS virtual memory.
 
-vLLM breaks KV cache into fixed-size *blocks* (typically 16 tokens each) that can be stored non-contiguously in GPU memory. A block table maps logical blocks to physical blocks — directly inspired by OS virtual memory.
-
-*How it works:*
+How it works:
 
 1. Each request maintains a block table (like a page table)
 2. Blocks are allocated on demand, not pre-reserved
@@ -196,29 +194,27 @@ vLLM breaks KV cache into fixed-size *blocks* (typically 16 tokens each) that ca
     └──────────────┘              (like OS pages)
 #+end_example
 
-*Key advantage:* Near-zero memory waste (under 4% vs 60-80% in traditional systems). Broad compatibility — works consistently across all hardware backends and model types.
+Memory waste is near zero (under 4%, vs 60-80% in traditional systems), and it works consistently across all hardware backends and model types. It suits predictable workloads, batch inference, templated prompts, beam search, and setups that need broad hardware support.
 
-*Best for:* Predictable workloads, batch inference, templated prompts, beam search, broad hardware support.
-
-** Practical Impact
+** Practical impact
 
 #+begin_quote
-*Example:* If you have 100 requests sharing a 500-token system prompt:
+Say you have 100 requests sharing a 500-token system prompt:
 
-- *Traditional system:* computes 50,000 tokens
-- *RadixAttention (SGLang):* computes 500 tokens once, automatically reuses 99 times — zero configuration
-- *APC (vLLM):* similar savings, but works best when you can predict and structure your caching patterns
+- A traditional system computes 50,000 tokens.
+- RadixAttention (SGLang) computes 500 tokens once and reuses them 99 times automatically, with zero configuration.
+- APC (vLLM) gives similar savings, but works best when you can predict and structure your caching patterns.
 
-The savings compound dramatically with few-shot prompting, RAG pipelines, and multi-turn conversations.
+The savings compound with few-shot prompting, RAG pipelines, and multi-turn conversations.
 #+end_quote
 
-* 4. Scheduler Design
+* 4. Scheduler design
 
-The CPU scheduler is a surprisingly critical bottleneck in LLM inference. Every iteration requires the CPU to decide which requests to batch, allocate memory, handle prefix matching, and prepare metadata — all while the GPU waits. How each engine handles this overhead is a key performance differentiator.
+The CPU scheduler is a surprisingly serious bottleneck in LLM inference. On every iteration the CPU decides which requests to batch, allocates memory, handles prefix matching, and prepares metadata, all while the GPU waits. How each engine handles this overhead accounts for a good part of the performance gap between them.
 
-** SGLang: Zero-Overhead Scheduler
+** SGLang: zero-overhead scheduler
 
-SGLang's scheduler runs *one batch ahead* of the GPU. While the GPU processes the current batch, the CPU concurrently prepares the next batch — overlapping scheduling work with GPU computation.
+SGLang's scheduler runs *one batch ahead* of the GPU: while the GPU processes the current batch, the CPU prepares the next one, so scheduling work overlaps with GPU computation.
 
 #+begin_example
   TRADITIONAL (Sequential):
@@ -252,23 +248,23 @@ SGLang's scheduler runs *one batch ahead* of the GPU. While the GPU processes th
   → No GPU idle time! CPU scheduling is fully hidden behind GPU work.
 #+end_example
 
-Profiling shows unoptimized engines spend *up to 50% of time on CPU overhead*. SGLang's approach reduces this to near-zero, giving a measurable 1.1-1.3x throughput improvement. The impact is most pronounced with small models and large tensor parallelism, where GPU steps are fast and CPU stalls are proportionally expensive.
+Profiling shows unoptimized engines spend *up to 50% of time on CPU overhead*. SGLang cuts this to near zero, for a measurable 1.1-1.3x throughput improvement. The effect is largest with small models and large tensor parallelism, where GPU steps are fast and CPU stalls cost proportionally more.
 
-** vLLM: V1 Engine Scheduler
+** vLLM: V1 engine scheduler
 
-vLLM's V1 engine (released 2025) represents a comprehensive re-architecture. It uses *dynamic scheduling with preemption support*, allowing it to pause lower-priority requests and offload their KV cache to CPU memory when GPU memory is tight.
+vLLM's V1 engine (released 2025) is a full re-architecture. It uses *dynamic scheduling with preemption support*, so it can pause lower-priority requests and offload their KV cache to CPU memory when GPU memory is tight.
 
-The V1 scheduler focuses on *flexibility and correctness* over raw scheduling speed. It supports complex scenarios like guided decoding, speculative decoding, and prefix caching within the same scheduling loop. The trade-off is somewhat higher per-step overhead compared to SGLang's hyper-optimized pipeline.
+The V1 scheduler favors flexibility and correctness over raw scheduling speed. It supports guided decoding, speculative decoding, and prefix caching within the same scheduling loop. The cost is somewhat higher per-step overhead than SGLang's heavily optimized pipeline.
 
-* 5. Structured Output Generation
+* 5. Structured output generation
 
-Producing guaranteed-valid structured outputs (JSON, XML, SQL) is increasingly critical for production applications. Both engines support constrained decoding, but SGLang has invested particularly heavily in this area.
+Production applications increasingly need guaranteed-valid structured outputs (JSON, XML, SQL). Both engines support constrained decoding, but SGLang has invested more heavily in it.
 
-** SGLang: Compressed FSM + Jump-Forward Decoding
+** SGLang: compressed FSM + jump-forward decoding
 
-SGLang compiles output schemas (e.g., Pydantic models) into a *compressed Finite State Machine*. When the FSM knows the next token deterministically (like =:= after a JSON key), SGLang skips the GPU entirely and inserts it directly. This "jump-forward" technique can bypass *30-50% of generation steps* for highly structured outputs.
+SGLang compiles output schemas (e.g., Pydantic models) into a *compressed finite state machine*. When the FSM knows the next token deterministically (like =:= after a JSON key), SGLang skips the GPU and inserts the token directly. For highly structured outputs, this "jump-forward" technique can bypass *30-50% of generation steps*.
 
-With the xGrammar backend, SGLang achieves up to *10x faster* JSON decoding compared to other open-source solutions.
+With the xGrammar backend, SGLang decodes JSON up to *10x faster* than other open-source solutions.
 
 #+begin_example
   Schema: { "name": str, "age": int }
@@ -282,13 +278,13 @@ With the xGrammar backend, SGLang achieves up to *10x faster* JSON decoding comp
   Result: 30-50% fewer GPU forward passes for structured output
 #+end_example
 
-** vLLM: Guided Decoding via Plugins
+** vLLM: guided decoding via plugins
 
-vLLM supports constrained decoding through its pluggable architecture, integrating xGrammar and Outlines as backends. The approach applies token-level masks to restrict the model's vocabulary at each step. While effective, it runs as an overlay on the standard pipeline rather than being deeply integrated into the scheduling and caching system.
+vLLM supports constrained decoding through its pluggable architecture, with xGrammar and Outlines as backends. It applies token-level masks that restrict the model's vocabulary at each step. This works, but it runs as an overlay on the standard pipeline and isn't deeply integrated into the scheduling and caching system.
 
-* 6. Distributed Serving & Multi-GPU
+* 6. Distributed serving & multi-GPU
 
-Both engines support tensor parallelism, pipeline parallelism, and data parallelism. The key differences lie in load balancing and cache-aware routing at scale.
+Both engines support tensor, pipeline, and data parallelism. Where they differ is load balancing and cache-aware routing at scale.
 
 | Strategy                   | SGLang                                                                            | vLLM                                                                           |
 |----------------------------+-----------------------------------------------------------------------------------+--------------------------------------------------------------------------------|
@@ -301,16 +297,16 @@ Both engines support tensor parallelism, pipeline parallelism, and data parallel
 | *Hardware Support*         | NVIDIA (GB200/H100/A100), AMD (MI355/MI300), Intel Xeon, TPUs, Ascend NPUs        | NVIDIA (all from V100+), AMD MI, TPU, AWS Trainium/Inferentia, Intel Gaudi/XPU |
 
 #+begin_quote
-*Hardware breadth edge → vLLM.* vLLM's plugin architecture gives it broader hardware support, including AWS Neuron and Intel Gaudi — important for organizations committed to non-NVIDIA stacks. SGLang leads on cutting-edge NVIDIA hardware optimization (GB200, large-scale EP) and has been closing the gap.
+vLLM has the edge on hardware breadth. Its plugin architecture supports more hardware, including AWS Neuron and Intel Gaudi, which matters for organizations committed to non-NVIDIA stacks. SGLang leads on optimization for cutting-edge NVIDIA hardware (GB200, large-scale EP) and has been closing the gap.
 #+end_quote
 
-* 7. Performance Benchmarks
+* 7. Performance benchmarks
 
-Performance comparisons should be interpreted carefully — results depend heavily on model size, hardware, workload type, batch size, and engine version. Both projects iterate rapidly. That said, independent benchmarks from 2025 paint a consistent picture.
+Read performance comparisons carefully. Results depend heavily on model size, hardware, workload type, batch size, and engine version, and both projects iterate quickly. That said, independent benchmarks from 2025 paint a consistent picture.
 
 ** Throughput: Llama 3.1 8B on H100 (ShareGPT workload)
 
-/Source: AIMultiple Research — 1,000 ShareGPT prompts, bfloat16, 0.8 GPU memory utilization/
+/Source: AIMultiple Research (1,000 ShareGPT prompts, bfloat16, 0.8 GPU memory utilization)/
 
 #+begin_example
   SGLang    ████████████████████████████████████████████████████  16,215 tok/s
@@ -322,7 +318,7 @@ Performance comparisons should be interpreted carefully — results depend heavi
   → Difference stems from orchestration overhead, not kernel performance
 #+end_example
 
-** Key Benchmark Findings
+** Key benchmark findings
 
 | Metric                          | Value    | Note                                                             |
 |---------------------------------+----------+------------------------------------------------------------------|
@@ -331,7 +327,7 @@ Performance comparisons should be interpreted carefully — results depend heavi
 | *sgl-router cache hit rate*    | *3.8x*  | vs round-robin load balancing                                    |
 | *Stripe's vLLM cost reduction* | *73%*   | 50M daily API calls on 1/3 the GPU fleet                         |
 
-** Nuanced Performance Picture
+** Where each engine wins
 
 | Metric                      | SGLang Wins                                     | vLLM Wins                                                    |
 |-----------------------------+-------------------------------------------------+--------------------------------------------------------------|
@@ -344,13 +340,13 @@ Performance comparisons should be interpreted carefully — results depend heavi
 | Non-NVIDIA hardware         | —                                               | Broader support and testing                                  |
 | DeepSeek models             | Day-0 support, DP attention (1.9x decode)       | Full support with MLA optimizations                          |
 
-* 8. Industry Adoption Survey
+* 8. Industry adoption survey
 
-Both engines have achieved remarkable production adoption, but with distinct patterns. vLLM has the larger install base and broader enterprise footprint. SGLang has surged in adoption for frontier-model serving and post-training workflows.
+Both engines are widely used in production, in different ways. vLLM has the larger install base and broader enterprise footprint. SGLang adoption has grown fast for frontier-model serving and post-training workflows.
 
-** SGLang Notable Adopters
+** SGLang notable adopters
 
-*400,000+ GPUs* running SGLang worldwide. Trillions of tokens generated daily.
+SGLang runs on 400,000+ GPUs worldwide and generates trillions of tokens a day.
 
 | Category             | Companies                                                         |
 |----------------------+-------------------------------------------------------------------|
@@ -360,11 +356,11 @@ Both engines have achieved remarkable production adoption, but with distinct pat
 | *Academia*           | Stanford, UC Berkeley, UCLA, MIT, U of Washington, Tsinghua       |
 | *RL/Post-Training*   | De facto backbone for verl, AReaL, Miles, slime, Tunix            |
 
-Funded by a16z's OSS AI Grant. Part of PyTorch ecosystem since March 2025.
+It is funded by a16z's OSS AI Grant and has been part of the PyTorch ecosystem since March 2025.
 
-** vLLM Notable Adopters
+** vLLM notable adopters
 
-*~50K+ GitHub stars*, largest OSS inference community. 100+ model architectures.
+vLLM has ~50K+ GitHub stars, the largest OSS inference community, and support for 100+ model architectures.
 
 | Category            | Companies                                                     |
 |---------------------+---------------------------------------------------------------|
@@ -374,9 +370,9 @@ Funded by a16z's OSS AI Grant. Part of PyTorch ecosystem since March 2025.
 | *Cloud Providers*   | Google Cloud, AWS, Azure                                      |
 | *K8s Ecosystem*     | llm-d project (Red Hat, Google Cloud, IBM, NVIDIA, CoreWeave) |
 
-Red Hat acquired Neural Magic and launched commercial AI Inference Server based on vLLM.
+Red Hat acquired Neural Magic and launched a commercial AI Inference Server based on vLLM.
 
-** Adoption Pattern Comparison
+** Adoption pattern comparison
 
 | Dimension              | SGLang                                 | vLLM                                                   |
 |------------------------+----------------------------------------+--------------------------------------------------------|
@@ -387,40 +383,40 @@ Red Hat acquired Neural Magic and launched commercial AI Inference Server based 
 | *Cloud integrations*   | Available on most GPU clouds           | Deeper integrations (SageMaker, RHEL AI, OpenShift AI)  |
 | *Community velocity*   | 300+ contributors, rapid iteration     | 15+ full-time, 20+ orgs, largest community             |
 
-* 9. TL;DR Decision Guide
+* 9. TL;DR decision guide
 
-There is no universally "better" engine — the right choice depends on your specific workload, team capabilities, hardware, and priorities.
+Neither engine is universally "better". The right choice depends on your workload, team capabilities, hardware, and priorities.
 
 ** Choose SGLang when...
 
-1. *Multi-turn conversations with shared context* — Chatbots, coding assistants, tutoring systems. RadixAttention automatically shares KV cache across conversational turns — zero configuration needed.
+1. *Multi-turn conversations with shared context*, such as chatbots, coding assistants, and tutoring systems. RadixAttention shares KV cache across conversational turns automatically, with zero configuration.
 
-2. *Structured output generation (JSON, XML, SQL)* — Compressed FSM + jump-forward decoding can skip 30-50% of generation steps. Up to 10x faster for JSON tasks.
+2. *Structured output generation (JSON, XML, SQL).* Compressed FSM + jump-forward decoding can skip 30-50% of generation steps, and JSON tasks run up to 10x faster.
 
-3. *Agentic / tree-of-thought / reasoning workloads* — Branching execution paths are a natural fit for the radix tree cache. The frontend DSL makes complex LLM programs composable.
+3. *Agentic / tree-of-thought / reasoning workloads.* Branching execution paths fit the radix tree cache naturally, and the frontend DSL makes complex LLM programs composable.
 
-4. *Maximum throughput on NVIDIA H100/GB200* — Independent benchmarks consistently show 15-30% throughput advantage on Hopper-class GPUs.
+4. *Maximum throughput on NVIDIA H100/GB200.* Independent benchmarks consistently show a 15-30% throughput advantage on Hopper-class GPUs.
 
-5. *RL post-training / rollout generation* — De facto backbone for RL frameworks (verl, AReaL, Miles). Native integrations for training workflows.
+5. *RL post-training / rollout generation.* SGLang is the de facto backbone for RL frameworks (verl, AReaL, Miles), with native integrations for training workflows.
 
 ** Choose vLLM when...
 
-1. *Broad hardware compatibility is critical* — Need AMD, Intel Gaudi, AWS Trainium, TPU, and NVIDIA? vLLM has the widest hardware backend support.
+1. *Broad hardware compatibility is critical.* If you need AMD, Intel Gaudi, AWS Trainium, TPU, and NVIDIA, vLLM has the widest hardware backend support.
 
-2. *Enterprise-grade stability & support* — Red Hat AI Inference Server provides a commercial, hardened distribution. Largest community, most tutorials, most battle-tested in Fortune 500.
+2. *Enterprise-grade stability & support.* Red Hat AI Inference Server is a commercial, hardened distribution, and vLLM has the largest community, the most tutorials, and the most battle-testing in the Fortune 500.
 
-3. *Drop-in OpenAI API replacement* — vLLM's OpenAI-compatible API is the most mature. Minimal friction for migrations.
+3. *Drop-in OpenAI API replacement.* vLLM's OpenAI-compatible API is the most mature, so migrations have little friction.
 
-4. *K8s-native distributed deployment* — The llm-d project provides production-grade K8s orchestration with disaggregated serving.
+4. *K8s-native distributed deployment.* The llm-d project provides production-grade K8s orchestration with disaggregated serving.
 
-5. *Batch inference with predictable patterns* — Templated prompts, batch content generation, single-round Q&A. PagedAttention excels when caching patterns are consistent.
+5. *Batch inference with predictable patterns*, such as templated prompts, batch content generation, and single-round Q&A. PagedAttention does well when caching patterns are consistent.
 
 ** Either works well for...
 
-- *Standard chat serving, RAG pipelines, general-purpose LLM APIs* — Both are production-grade. Performance differences are narrowing with each release.
-- *DeepSeek, Llama, Qwen, Mistral model families* — Both have day-0 support for major releases. Both support FP8, INT4, AWQ, GPTQ quantization.
+- *Standard chat serving, RAG pipelines, general-purpose LLM APIs.* Both are production-grade, and the performance differences narrow with each release.
+- *DeepSeek, Llama, Qwen, Mistral model families.* Both have day-0 support for major releases, and both support FP8, INT4, AWQ, and GPTQ quantization.
 
-** Quick Decision Flowchart
+** Quick decision flowchart
 
 #+begin_example
   START
@@ -448,7 +444,7 @@ There is no universally "better" engine — the right choice depends on your spe
 #+end_example
 
 #+begin_quote
-*Final advice:* Always benchmark with YOUR workload on YOUR hardware before committing. Both projects release new versions frequently with significant performance improvements. The "best" engine today may not be the best in 3 months. Consider maintaining the ability to switch — both support OpenAI-compatible APIs, making migration relatively straightforward.
+Always benchmark your own workload on your own hardware before committing. Both projects release new versions often, with significant performance improvements, so the "best" engine today may not be the best in 3 months. It's worth keeping the ability to switch; both support OpenAI-compatible APIs, which makes migration relatively straightforward.
 #+end_quote
 
 -----

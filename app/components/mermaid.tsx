@@ -200,7 +200,18 @@ export function Mermaid({ chart }: { chart: string }) {
             applyMermaidTheme(isDark);
             const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
             try {
-                const { svg } = await mermaid.render(id, cleaned);
+                // Carry the theme in an init directive: mermaid-to-excalidraw
+                // re-initializes the shared mermaid instance with its defaults,
+                // and mermaid.render is queued, so the global config set above
+                // can be clobbered before this diagram actually renders.
+                const init = JSON.stringify({
+                    theme: "base",
+                    themeVariables: mermaidThemeVariables(isDark),
+                });
+                const { svg } = await mermaid.render(
+                    id,
+                    `%%{init: ${init}}%%\n${cleaned}`,
+                );
                 if (!cancelled) setSvg(svg);
             } catch (error) {
                 console.error("Mermaid rendering error:", error);

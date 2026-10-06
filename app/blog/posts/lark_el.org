@@ -1,81 +1,73 @@
 #+TITLE: Lark.el, Bringing Work Context to the Agent
 #+DATE: 2026-05-07
-#+SUMMARY: Today's agents aren't bottlenecked by capability — they're bottlenecked by context. Notes on rebuilding lark.el as a context layer instead of a Lark client, the domain-provider pattern that fell out, and what makes an agent feel native to Emacs.
+#+SUMMARY: Today's agents are limited more by what they know than by what they can do. Notes on rebuilding lark.el as a context layer instead of a Lark client, the provider pattern that came out of it, and what makes an agent feel native to Emacs.
 
-I spend most of my work day in Emacs and most of my work /life/ in Lark (Feishu). For a long time those two realities barely overlapped — docs lived in the browser, chats in the desktop app, my calendar somewhere else. The obvious thing to want was an Emacs client for Lark. So I started building one. About a third of the way in, I realized that wasn't the project worth building at all.
+I spend most of my work day in Emacs and most of my work /life/ in Lark (Feishu). For a long time the two barely overlapped: docs lived in the browser, chats in the desktop app, my calendar somewhere else. So I started building an Emacs client for Lark. About a third of the way in, I decided that client wasn't worth building.
 
-This is a writeup of what =lark.el= actually became, why, and the architectural ideas I picked up along the way.
+This post covers what =lark.el= became instead, why, and the design ideas I picked up along the way.
 
-* What the Project Is Actually About
+* What the project is about
 
-The first version looked like every other "X-in-Emacs" tool: a buffer per domain, keybindings to refresh, basic rendering. The mental model was "bring Lark into Emacs."
+The first version looked like every other "X-in-Emacs" tool: a buffer per domain, keybindings to refresh, basic rendering. The plan was to bring Lark into Emacs.
 
-Two things pushed me off that path.
+Two things changed that plan.
 
-*Push notifications are someone else's problem.* Lark already has desktop, mobile, and web clients that do real-time messaging better than Emacs ever will. Reinventing them would be a fool's errand.
+First, Lark already has desktop, mobile, and web clients that handle push notifications and real-time messaging better than Emacs ever will. Rebuilding them would be a fool's errand.
 
-*LLMs ate the case for a thick client.* Once Sonnet-class models can drive a CLI competently, the value of a polished UI for /browsing/ Lark drops sharply. The value of a /terse, structured context layer that an agentic LLM can read and act on/ goes up. Emacs is unusually good at being that layer because everything is text, and text is what LLMs eat.
+Second, LLMs weakened the case for a thick client. Once Sonnet-class models could drive a CLI competently, a polished UI for /browsing/ Lark mattered much less, and a terse, structured context layer that an agentic LLM can read and act on mattered much more. Emacs is unusually good at being that layer because everything in it is text, and text is what LLMs eat.
 
-So =lark.el= pivoted: from "Lark client in Emacs" to "bring work context close to an agentic LLM, so it can connect the dots across your day-to-day work."
+So =lark.el= pivoted from "Lark client in Emacs" to "bring work context close to an agentic LLM, so it can connect the dots across your day-to-day work."
 
 #+begin_quote
-One practical note: the whole thing sits on top of [[https://github.com/larksuite/cli][=lark-cli=]], the official Lark command-line tool. Wrapping a CLI instead of the Open API means the Elisp side never thinks about OAuth, region routing, retry, or schema drift. (It actually drifts quite often at its early versions.)
+One practical note: the whole thing sits on top of [[https://github.com/larksuite/cli][=lark-cli=]], the official Lark command-line tool. Because it wraps a CLI instead of the Open API, the Elisp side never deals with OAuth, region routing, retries, or schema drift. (The CLI's output drifted quite often in its early versions.)
 #+end_quote
 
 #+begin_export html
 <video src="/videos/lark.mp4" controls muted playsinline preload="metadata"></video>
 #+end_export
 
-* The Agent's Bottleneck Is Context, Not Capability
+* The agent's bottleneck is context
 
-Once I started using the AI layer for real work, the lesson came fast: today's LLMs can already write a status report, summarise a doc, draft a reply, plan a refactor. None of that is the hard part.
+Once I started using the AI layer for real work, I learned quickly that today's LLMs can already write a status report, summarise a doc, draft a reply, or plan a refactor. The hard part is what the agent knows about. An LLM with no context is a clever stranger.
 
-The hard part is /what does the agent know about?/ An LLM with no context is a clever stranger.
+For everyday productivity work (switching between projects, prepping meetings, following up on threads), bigger models don't help much. What helps is giving the agent the same dots /you/ are connecting in your head. "Draft a reply to this message" gets a much better answer when the agent also has the chat history, the project it's about, the doc you both edited last week, and the PR the other person was reviewing yesterday. The model is the same in both cases; only the information differs.
 
-For productivity work specifically — the daily texture of switching between projects, prepping meetings, following up on threads — the bottleneck isn't bigger models. It's the agent's access to the same dots /you/ are connecting in your head. The difference between "draft a reply to this message" and "draft a reply to this message — and I know the chat history, the project this is about, the doc you both edited last week, the PR they were reviewing yesterday" is not a difference of model intelligence. It's a difference of information.
+A good agent on a great context layer beats a great agent on nothing. That idea reoriented the whole project: the AI features in =lark.el= exist mostly to feed the agent context, in shapes it can act on, before any synthesis happens. The same model that looks brilliant with the right snippets in front of it looks generic without them, so I spend more effort on the facts it gets than on the prompt.
 
-A good agent on top of a great context layer beats a great agent on top of nothing. That observation is what reoriented the whole project: the AI features in =lark.el= exist mostly to feed the agent context, in shapes the LLM can act on, before any synthesis happens.
+* Context as a graph of domain providers
 
-Put another way: most of what we'd attribute to "agentic capability" is really a question of substrate. The same model that looks brilliant when it has the right snippets in front of it looks generic when it doesn't. So if you want the agent to do more useful work, the lever to pull isn't a smarter prompt — it's a better-shaped pile of facts.
-
-* Context as a Graph of Domain Providers
-
-What that looks like in code is a small module I ended up calling the /context graph/. Given a topic string, it fans out to every registered provider — one per Lark domain — runs them concurrently, and stitches their results into a single markdown blob for the model to synthesise. =lark-ai-brief-on= is the first workflow built on it: "brief me on the Q3 migration" pulls the matching docs and the chat threads that mention it, and hands the model both at once.
+In code, this is a small module I call the /context graph/. Given a topic string, it runs every registered provider (one per Lark domain) concurrently and stitches their results into one markdown blob for the model to synthesise. =lark-ai-brief-on= is the first workflow built on it: "brief me on the Q3 migration" pulls the matching docs and the chat threads that mention it, and hands the model both at once.
 
 Three properties made it work:
 
-- *Budget-bounded.* A soft character budget (100k by default) is divided proportionally across providers, and each provider clips its own items. A brief never blows up the context window because one domain happened to be noisy.
-- *Fail-open.* A provider whose CLI call fails is logged and contributes nothing. The brief still ships. That makes it cheap to add experimental providers without breaking the ones that work.
-- *Open registry.* A provider is just a function of =(topic budget done-fn)=. v1 ships Docs and Messages; adding Meetings or Tasks is a new function, not a rewrite of the gatherer.
+- It stays within a budget. A soft limit of 100k characters is split proportionally across providers, and each provider clips its own items, so one noisy domain can't blow up the context window.
+- It fails open. If a provider's CLI call fails, the error is logged, the provider contributes nothing, and the brief still ships. That makes it cheap to try experimental providers without risking the ones that work.
+- The registry is open. A provider is just a function of =(topic budget done-fn)=. v1 ships Docs and Messages; adding Meetings or Tasks means writing one new function and leaving the gatherer alone.
 
-* A Native Agent Acts, It Doesn't Chat
+* A native agent acts on things
 
-The other thing I wanted to get right was making the agent feel /native/ to Emacs — not a chat panel skinned to look like one.
+The other thing I wanted was an agent that feels /native/ to Emacs, rather than a chat panel skinned to look like Emacs. In this project, that came down to four habits.
 
-What "native" means in practice, in this project at least:
+The agent reads context from where you already are. Its idea of what you're working on comes from the things you'd look at yourself: buffer text, the text property at point, the major mode, the file path. You don't switch into an agent mode or describe your situation in an input box. A reply-drafting workflow already knows the chat ID from a buffer-local variable, and a doc-summarisation workflow gets the doc token from =thing-at-point=.
 
-*It reads context from where you already are.* The agent's notion of "what is the user working on" comes from the same things you'd look at: buffer text, the text property at point, the major mode, the file path. There's no separate "agent mode" or "input box" you have to translate your situation into. A reply-drafting workflow already knows the chat ID from a buffer-local variable; a doc-summarisation workflow already knows the doc token from =thing-at-point=. The agent inherits your situation rather than asking you to describe it.
-
-*It writes results into Emacs surfaces.* The AI front end is a comint-style shell built on [[https://github.com/xenodium/shell-maker][=shell-maker=]] (the engine under =chatgpt-shell= and =agent-shell=), docked as a side panel on the right. That buys the ergonomics Emacs users already have in their fingers for free: a real prompt, =M-p= / =M-n= input history, history search, transcript saving. Progress lines render dimmed, each finished tool call collapses to a one-line =✓= / =✗= entry, and the final answer streams in as markdown rendered with overlays in the buffer's own faces — no hex codes, no hand-rolled CSS-in-Elisp. Every affordance is something Emacs already does well.
+It writes results into Emacs surfaces. The AI front end is a comint-style shell built on [[https://github.com/xenodium/shell-maker][=shell-maker=]] (the engine under =chatgpt-shell= and =agent-shell=), docked as a side panel on the right. That gives you the ergonomics already in your fingers: a real prompt, =M-p= / =M-n= input history, history search, transcript saving. Progress lines render dimmed, each finished tool call collapses to a one-line =✓= / =✗= entry, and the final answer streams in as markdown, rendered with overlays in the buffer's own faces. There are no hex codes or hand-rolled CSS-in-Elisp anywhere.
 
 #+begin_export html
 <video src="/videos/lark-ai.mp4" controls muted playsinline preload="metadata"></video>
 #+end_export
 
-*Its tools are domain-aware, not generic.* The agent doesn't have a =Bash= tool with which it then types arbitrary shell. Each action it emits is a single =lark-cli= command against a domain — =docs +create=, =im +messages-reply=, =calendar +update= — and before the loop starts, a cheap router call picks which of =lark-cli='s =SKILL.md= files are relevant to the request, so the prompt only carries the domains that matter. Side-effecting commands gate on confirmation by default; content arguments (a multi-KB doc body, a long reply) get clipped to a one-line preview so the buffer doesn't drown in body text.
+Its tools are specific to Lark's domains. The agent has no =Bash= tool for typing arbitrary shell commands. Each action it emits is a single =lark-cli= command against a domain, such as =docs +create=, =im +messages-reply=, or =calendar +update=. Before the loop starts, a cheap router call picks which of =lark-cli='s =SKILL.md= files the request needs, so the prompt only carries the relevant domains. Commands with side effects ask for confirmation by default, and long content arguments (a multi-KB doc body, a long reply) are clipped to a one-line preview so the buffer doesn't drown in body text.
 
-*It composes instead of replacing.* The ReAct loop is lark.el's own, but the model behind it is pluggable. The default backend drives a locally installed agent — Claude Code, or Gemini CLI — over the [[https://agentclientprotocol.com][Agent Client Protocol]] via [[https://github.com/xenodium/acp.el][=acp.el=]], the same plumbing =agent-shell= uses. That means no API key: the agent's own login is reused. The twist is that the agent's own agency is switched off — no file-system capabilities advertised, permission requests auto-declined, its system prompt replaced with lark's — so it acts purely as a text engine inside lark's loop. [[https://github.com/karthink/gptel][=gptel=]] and a raw OpenAI-compatible endpoint are there as alternatives. And the Lark domains still export their own buffers and keybindings (=C-c l a=, =C-c l m=, =C-c l e=) that don't need the agent at all — the agent is just one more way to act on the same substrate.
+It fits alongside your other tools. The ReAct loop belongs to lark.el, but the model behind it is pluggable. The default backend drives a locally installed agent, Claude Code or Gemini CLI, over the [[https://agentclientprotocol.com][Agent Client Protocol]] via [[https://github.com/xenodium/acp.el][=acp.el=]], the same plumbing =agent-shell= uses. You don't need an API key because the agent's own login is reused. The twist is that lark.el switches off the agent's own agency: it advertises no file-system capabilities, auto-declines permission requests, and replaces the agent's system prompt with its own, so the agent works purely as a text engine inside lark's loop. [[https://github.com/karthink/gptel][=gptel=]] and a raw OpenAI-compatible endpoint are there as alternatives. The Lark domains also have their own buffers and keybindings (=C-c l a=, =C-c l m=, =C-c l e=) that work without the agent at all; the agent is one more way to act on the same data.
 
-This is what I mean by "an agent that acts": every interaction is a real operation against a real domain, not a turn in a conversation. The chat surface is incidental — useful for free-form prompts and history, but not the unit of value. The unit of value is the action: a doc created, a message replied to, a brief assembled, a meeting prepped.
+That's what I mean by an agent that acts: every interaction is a real operation against a real domain. The chat surface is useful for free-form prompts and history, but what I care about is the result: a doc created, a message replied to, a brief assembled, a meeting prepped.
 
-An agent that acts also needs /structural/ guarantees a chatty one can skip. The transcript has to be inspectable, so you can see exactly what ran. Side effects have to gate on confirmation by default, and the kill switch (=C-c C-k=) has to actually stop everything in flight. Steps have to be small enough to abort or redirect mid-flow without throwing away the whole turn.
+An agent that acts needs guarantees a chatty one can skip. The transcript has to be inspectable, so you can see exactly what ran. Side effects need confirmation by default, and the kill switch (=C-c C-k=) has to stop everything in flight. Steps have to be small enough that you can abort or redirect one without throwing away the whole turn.
 
-This is where the ReAct loop earns its keep. An earlier version of the AI layer asked the LLM for a whole multi-step plan in JSON before executing anything. It looked elegant — declarative, reviewable — but in practice it forced the model to commit to dependencies it didn't yet understand: a "create a doc with the content from step 1" step that named a content artifact step 1 hadn't actually produced yet. A ReAct loop matches one decision to one observation: ask the model for one action, run it, feed the result back, decide again. (The plan executor is still in the tree behind a single setting, but nothing defaults to it any more.) The user keeps the abort key, the transcript stays reproducible, and a wrong step is one step instead of a wrecked plan. The loop matches how LLMs actually think — bounded decisions on real observations — instead of how programmers wish they did.
+The ReAct loop is what makes those guarantees practical. An earlier version of the AI layer asked the LLM for a whole multi-step plan in JSON before running anything. It looked elegant, since the plan was declarative and easy to review, but it forced the model to commit to dependencies it didn't understand yet: a step like "create a doc with the content from step 1" would refer to content that step 1 hadn't produced. A ReAct loop pairs one decision with one observation. It asks the model for one action, runs it, feeds the result back, and asks again. You keep the abort key, the transcript stays reproducible, and a wrong step costs one step instead of the whole plan. That matches how LLMs work in practice, making bounded decisions on real observations. (The plan executor is still in the tree behind a single setting, but nothing uses it by default.)
 
 * Closing
 
-The thing I'd most want someone building a similar tool to take away is: *the agent and the substrate are co-designed.* A clever model on top of a thin layer can answer questions; a modest model on top of a domain-provider context graph can actually do work.
+If someone building a similar tool takes one thing from this, I'd want it to be that the agent and the context layer have to be designed together. A clever model on a thin layer can answer questions; a modest model on a domain-provider context graph can do actual work.
 
-Build the providers. Make them domain-aware, async, budget-bounded, fail-open. Keep the registry open so new domains plug in without rewiring the gatherer. Compose workflows out of the same context graph instead of orchestrating each one bespoke. Let the agent act on real domains with real consequences, surfaced through Emacs's native idioms — buffers, text properties, theme-aware faces, the keyboard.
-
-Most of what feels like "agentic capability" turns out to be a context-layer problem in disguise. Solve that, and the agent's job gets easier on its own.
+Build the providers. Make them domain-aware, async, budget-bounded, and fail-open, and keep the registry open so new domains plug in without rewiring the gatherer. Build workflows from the same context graph instead of orchestrating each one by hand. Let the agent act on real domains with real consequences, through the things Emacs already does well: buffers, text properties, theme-aware faces, and the keyboard.

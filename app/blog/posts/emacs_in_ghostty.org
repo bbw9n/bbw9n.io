@@ -1,12 +1,12 @@
 #+TITLE: Taming Emacs Keybindings in Ghostty
 #+DATE: 2025-02-03
-#+SUMMARY: Taming the emacs keybindings in terminal to make TUI Emacs in Ghostty feel like the same GUI Emacs on macOS
+#+SUMMARY: Taming Emacs keybindings in the terminal so TUI Emacs in Ghostty feels like GUI Emacs on macOS
 
-If you use GUI Emacs on macOS, you've probably customized =Cmd= to behave like a proper modifier — =Cmd-C= to copy, =Cmd-V= to paste, =Cmd-S= to save. It feels native. It feels right. Then you open Emacs in a terminal and everything falls apart.
+If you use GUI Emacs on macOS, you've probably customized =Cmd= to behave like a proper modifier: =Cmd-C= to copy, =Cmd-V= to paste, =Cmd-S= to save. It feels native, right up until you open Emacs in a terminal and everything falls apart.
 
-This post documents my journey to make TUI Emacs running inside [[https://ghostty.org][Ghostty]] feel identical to my GUI Emacs setup — from =Cmd= key bindings to =Ctrl+Shift= selection to clipboard integration. It was a fight, and I learned a lot about how terminals actually send keystrokes.
+This post covers how I made TUI Emacs running inside [[https://ghostty.org][Ghostty]] feel identical to my GUI Emacs setup, including =Cmd= key bindings, =Ctrl+Shift= selection, and clipboard integration. It was a fight, and I learned a lot about how terminals send keystrokes.
 
-* My GUI Emacs Config
+* My GUI Emacs config
 
 My GUI Emacs config maps macOS modifiers to Emacs modifiers and binds standard macOS shortcuts:
 
@@ -27,32 +27,32 @@ My GUI Emacs config maps macOS modifiers to Emacs modifiers and binds standard m
 (global-set-key [(hyper q)] 'save-buffers-kill-emacs)
 #+end_src
 
-In GUI Emacs, this is trivial. The GUI framework receives the full modifier state from the OS, so =Cmd=, =Hyper=, =Super= — they all just work. Terminals are a different beast entirely.
+In GUI Emacs, this is trivial. The GUI framework receives the full modifier state from the OS, so =Cmd=, =Hyper= and =Super= all just work. Terminals are a different beast.
 
-* Why Terminals Make This Hard
+* Why terminals make this hard
 
-Here's the fundamental problem: *terminals don't send key events — they send byte sequences.*
+The core problem is that terminals send byte sequences, not key events.
 
 When you press a key in a GUI app, the OS sends a rich event: "the user pressed the =s= key while holding =Cmd= and =Shift=." The app gets the full picture.
 
-A terminal emulator, by contrast, communicates with the shell (and programs like Emacs) through a pseudo-TTY — essentially a pipe of bytes. The encoding of keystrokes into bytes dates back to the VT100 era of the 1970s. Here's what that means in practice:
+A terminal emulator, by contrast, communicates with the shell (and programs like Emacs) through a pseudo-TTY, which is essentially a pipe of bytes. The encoding of keystrokes into bytes dates back to the VT100 era of the 1970s. In practice, that means:
 
-- *Ctrl* works because it's baked into ASCII. =Ctrl-A= is byte =0x01=, =Ctrl-C= is =0x03=, etc. This is literally how ASCII was designed.
-- *Meta/Alt* works by convention: the terminal sends =ESC= (=0x1b=) followed by the key. So =Alt-f= becomes the two-byte sequence =ESC f=.
-- *Arrow keys and function keys* use escape sequences like =ESC [ A= (up arrow) or =ESC [ 1 ; 5 A= (Ctrl+Up). These are called *CSI sequences* (Control Sequence Introducer).
-- *Hyper and Super modifiers don't exist* in the terminal protocol. There is simply no standard way to encode them.
-- *Ctrl+Shift+letter* is indistinguishable from *Ctrl+letter* in traditional terminal encoding, because =Ctrl= already collapses the letter to a control code.
+- Ctrl works because it's baked into ASCII. =Ctrl-A= is byte =0x01=, =Ctrl-C= is =0x03=, etc. This is literally how ASCII was designed.
+- Meta/Alt works by convention: the terminal sends =ESC= (=0x1b=) followed by the key. So =Alt-f= becomes the two-byte sequence =ESC f=.
+- Arrow keys and function keys use escape sequences like =ESC [ A= (up arrow) or =ESC [ 1 ; 5 A= (Ctrl+Up). These are called CSI sequences (Control Sequence Introducer).
+- Hyper and Super modifiers don't exist in the terminal protocol. There is no standard way to encode them.
+- Ctrl+Shift+letter is indistinguishable from Ctrl+letter in traditional terminal encoding, because =Ctrl= already collapses the letter to a control code.
 
-So my entire GUI config — built on =hyper= — is fundamentally incompatible with how terminals work. We need a translation layer.
+So my entire GUI config, built on =hyper=, is incompatible with how terminals work. We need a translation layer.
 
-* The Solution: A Two-Part Translation Pipeline
+* The solution: a two-part translation pipeline
 
-The strategy is:
+The plan has two halves:
 
-1. *Ghostty side:* Intercept =Cmd+<key>= and =Ctrl+Shift+<key>= presses and send unique, made-up escape sequences.
-2. *Emacs side:* Decode those sequences back into key events and bind them to commands.
+1. In Ghostty, intercept =Cmd+<key>= and =Ctrl+Shift+<key>= presses and send unique, made-up escape sequences.
+2. In Emacs, decode those sequences back into key events and bind them to commands.
 
-** Part 1: Ghostty Sends Custom Escape Sequences
+** Part 1: Ghostty sends custom escape sequences
 
 Ghostty's =keybind= directive can map key combinations to arbitrary byte sequences using the =text:= or =esc:= prefix. Here's what I added to my Ghostty config:
 
@@ -78,27 +78,27 @@ keybind = ctrl+shift+f=text:\x1bZf
 keybind = ctrl+shift+b=text:\x1bZb
 #+end_src
 
-The =[1;8= prefix for Cmd keys uses CSI parameter =8=, which encodes "Meta+Ctrl+Shift" in xterm modifier convention — a modifier combo nothing actually sends, so there are no collisions.
+The =[1;8= prefix for Cmd keys uses CSI parameter =8=, which encodes "Meta+Ctrl+Shift" in xterm modifier convention. Nothing sends that modifier combo, so there are no collisions.
 
 For =Ctrl+Shift=, I use =ESC Z= as a prefix, which is not used by any standard terminal protocol.
 
-** Part 2: Emacs Decodes and Binds
+** Part 2: Emacs decodes and binds
 
-This is where I hit the most obstacles. Here's what I learned:
+This is where I hit the most obstacles.
 
-*=input-decode-map= has prefix collisions.* Emacs's terminal input handling already has entries for =ESC [1= (used by arrow keys, function keys, etc.). When my =ESC [1;8c= sequence arrives, Emacs matches =ESC [1= against an existing keymap entry and then treats =;8c= as separate characters. This is why I kept seeing things like =M-[ 1 ; 8 c is undefined= in the minibuffer.
+=input-decode-map= has prefix collisions. Emacs's terminal input handling already has entries for =ESC [1= (used by arrow keys, function keys, etc.). When my =ESC [1;8c= sequence arrives, Emacs matches =ESC [1= against an existing keymap entry and then treats =;8c= as separate characters. This is why I kept seeing things like =M-[ 1 ; 8 c is undefined= in the minibuffer.
 
-*The fix: use =key-translation-map= instead of =input-decode-map=.* The =key-translation-map= is processed after =input-decode-map=, so it doesn't fight with existing terminal key definitions. It translates the raw byte sequence into an intermediate key chord (=C-c h <letter>=), which is then bound to the actual command.
+The fix was to use =key-translation-map= instead of =input-decode-map=. It is processed after =input-decode-map=, so it doesn't fight with existing terminal key definitions. It translates the raw byte sequence into an intermediate key chord (=C-c h <letter>=), which is then bound to the actual command.
 
-*Hyper doesn't work in terminal Emacs.* Even if you manage to decode a sequence into =[C-S-e]= via =input-decode-map=, the =hyper= modifier simply isn't recognized by terminal Emacs. Don't waste time trying.
+Hyper doesn't work in terminal Emacs. Even if you manage to decode a sequence into =[C-S-e]= via =input-decode-map=, the =hyper= modifier isn't recognized by terminal Emacs. Don't waste time trying.
 
-*=Ctrl+Shift= DOES work — but shift-selection doesn't.* Terminal Emacs can recognize =[C-S-e]= as a key event, but the shift-selection machinery (=shift-select-mode=) doesn't trigger. In GUI Emacs, pressing =Ctrl+Shift+E= automatically starts/extends the region because the movement commands use =interactive "^"=. In terminal Emacs, even when the key is decoded correctly, this automatic shift-selection doesn't kick in. The fix is to write explicit wrapper commands that manage the mark manually.
+=Ctrl+Shift= does work, but shift-selection doesn't. Terminal Emacs can recognize =[C-S-e]= as a key event, but the shift-selection machinery (=shift-select-mode=) doesn't trigger. In GUI Emacs, pressing =Ctrl+Shift+E= automatically starts/extends the region because the movement commands use =interactive "^"=. In terminal Emacs, even when the key is decoded correctly, this automatic shift-selection doesn't kick in. The fix is to write explicit wrapper commands that manage the mark manually.
 
-*=tty-setup-hook= is the right place for terminal config.* Wrapping your terminal-specific config in =(unless (display-graphic-p) ...)= at the top level doesn't always work — it evaluates at init time, before the terminal frame may be fully set up. Use =tty-setup-hook= instead, which fires when a terminal frame is created.
+=tty-setup-hook= is the right place for terminal config. Wrapping your terminal-specific config in =(unless (display-graphic-p) ...)= at the top level doesn't always work, because it evaluates at init time, before the terminal frame may be fully set up. Use =tty-setup-hook= instead, which fires when a terminal frame is created.
 
-** Part 3: Clipboard Integration
+** Part 3: Clipboard integration
 
-In GUI Emacs, =yank= automatically pulls from the system clipboard. In terminal Emacs, the kill ring and system clipboard are completely separate worlds. The cleanest fix is to set Emacs's =interprogram-cut-function= and =interprogram-paste-function= to pipe through =pbcopy= and =pbpaste=:
+In GUI Emacs, =yank= automatically pulls from the system clipboard. In terminal Emacs, the kill ring and system clipboard are completely separate. The cleanest fix is to set Emacs's =interprogram-cut-function= and =interprogram-paste-function= to pipe through =pbcopy= and =pbpaste=:
 
 #+begin_src elisp
 (setq interprogram-paste-function
@@ -113,7 +113,7 @@ In GUI Emacs, =yank= automatically pulls from the system clipboard. In terminal 
 
 This makes every =kill= and =yank= in Emacs sync with the macOS clipboard transparently, just like GUI Emacs.
 
-* The Complete Config
+* The complete config
 
 ** Ghostty (=~/.config/ghostty/config=)
 
@@ -218,22 +218,22 @@ keybind = ctrl+shift+b=text:\x1bZb
 (add-hook 'tty-setup-hook #'my/setup-terminal-keys)
 #+end_src
 
-* Debugging Tips
+* Debugging tips
 
-If you're trying something similar and things aren't working, here are the tools that saved me:
+If you're trying something similar and things aren't working, these are the tools that saved me:
 
-1. *=C-h l= / =M-x view-lossage=* — Shows the last 300 keystrokes Emacs received. This is your best friend. Press your key combo, then check lossage to see exactly what bytes Emacs got. If you see individual characters like =ESC [ 1 ; 8 c= instead of a single event, your decode map isn't matching.
+1. =C-h l= or =M-x view-lossage= shows the last 300 keystrokes Emacs received. This is your best friend. Press your key combo, then check lossage to see exactly what bytes Emacs got. If you see individual characters like =ESC [ 1 ; 8 c= instead of a single event, your decode map isn't matching.
 
-2. *=M-: (read-key-sequence-vector "Press key: ")=* — Prompts you to press a key and shows exactly what Emacs decodes it as. This tells you whether your =input-decode-map= entries are working.
+2. =M-: (read-key-sequence-vector "Press key: ")= prompts you to press a key and shows exactly what Emacs decodes it as, which tells you whether your =input-decode-map= entries are working.
 
-3. *=M-: (lookup-key input-decode-map "\e[1")=* — Inspect what's already bound at a given prefix in a keymap. This is how I discovered the prefix collision problem.
+3. =M-: (lookup-key input-decode-map "\e[1")= shows what's already bound at a given prefix in a keymap. This is how I discovered the prefix collision problem.
 
-4. *Understand the three translation keymaps.* Emacs processes terminal input through a pipeline: =input-decode-map= → =local-function-key-map= → =key-translation-map=. If one stage has a prefix collision, try a later stage.
+4. Learn the three translation keymaps. Emacs processes terminal input through a pipeline: =input-decode-map= → =local-function-key-map= → =key-translation-map=. If one stage has a prefix collision, try a later stage.
 
-5. *=&rest _= is your friend.* When binding commands through keymaps that dispatch via intermediate lookup, unexpected arguments can be passed. Adding =&rest _= to your function signatures absorbs them gracefully.
+5. Add =&rest _= to your function signatures. When you bind commands through keymaps that dispatch via intermediate lookup, unexpected arguments can be passed, and =&rest _= absorbs them.
 
-6. *Test interactively with =M-:=* before committing to your config. Evaluate =define-key= expressions one at a time in a running Emacs session to isolate what works and what doesn't.
+6. Test interactively with =M-:= before committing to your config. Evaluate =define-key= expressions one at a time in a running Emacs session to isolate what works and what doesn't.
 
-* Final Thoughts
+* Final thoughts
 
-The gap between GUI and terminal Emacs is a relic of how terminals work at a fundamental level. But with a modern terminal like Ghostty that lets you remap keys to arbitrary byte sequences, and Emacs's flexible key translation pipeline, you can bridge it. The trick is understanding that you're building a two-hop translation: physical key → terminal escape sequence → Emacs key event → command. Once that mental model clicks, the rest is just plumbing.
+The gap between GUI and terminal Emacs is a relic of how terminals encode keys. With a modern terminal like Ghostty that lets you remap keys to arbitrary byte sequences, and Emacs's flexible key translation pipeline, you can bridge it. The trick is understanding that you're building a two-hop translation: physical key → terminal escape sequence → Emacs key event → command. Once that mental model clicks, the rest is plumbing.

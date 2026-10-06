@@ -8,7 +8,7 @@ I write in Org. My colleagues write in Lark docs. For a long time the two met th
 
 I thought this would be a weekend of plumbing. It turned out to be a crash course in what happens when two formats have to agree on a document.
 
-* How It Works
+* How it works
 
 Both directions make the same three moves: take Lark's custom blocks out and leave placeholder tokens behind, let pandoc convert everything else in one pass, then put the blocks back in the other format's syntax. Here's one small doc going both ways.
 
@@ -138,7 +138,7 @@ ORGLARKPH1Z Ship the *beta* before Friday. ORGLARKPH2Z
 ORGLARKPH5Z
 #+end_example
 
-This direction isn't a mirror image of the first. The table stays as it is, because an Org table is something pandoc already knows how to turn into Markdown.
+One step differs from the export: the table stays as it is, because an Org table is something pandoc already knows how to turn into Markdown.
 
 *3. Pandoc.* Org goes in, GitHub-flavoured Markdown comes out: =*beta*= becomes =**beta**=, and the table becomes a Markdown table.
 
@@ -163,7 +163,7 @@ Ship the **beta** before Friday.
 
 The doc is back where it started. Every step in between is a place where something can go wrong, which is what the rest of this post is about.
 
-* Don't Write a Converter
+* Don't write a converter
 
 The first rule I set: I'm not writing a Markdown-to-Org converter. Pandoc already did that, and better than I would.
 
@@ -173,7 +173,7 @@ My first placeholder looked like =ORGLARKPH1_=. Reasonable, right? Pandoc saw th
 
 The fix was to end the token with a letter: =ORGLARKPH1Z=. It took me an afternoon to find, and I've had a rule ever since: /if you're hiding something from a text processor, hide it in something it has no opinion about./ Punctuation always has an opinion.
 
-* The Callout With an Identity Crisis
+* The callout with an identity crisis
 
 Going from Lark to Org is a bounded problem. Lark has a fixed set of custom blocks, like callouts, grids, and tables, and you write one handler for each.
 
@@ -183,7 +183,7 @@ My first answer was to guess: if it has an emoji attribute, it's probably a call
 
 Then pandoc, which has no idea that line matters, sometimes glued it onto the end of a list item. So callouts turned into plain quotes when published, but only when they were inside a list. That cost me a full day of debugging, and the fix was two regexes.
 
-* Decide What to Lose
+* Decide what to lose
 
 Lark lets you nest things Org simply can't. A table cell can hold a callout. A grid column can hold a table. A table cell can hold a grid that holds a table.
 
@@ -193,7 +193,7 @@ Org tables don't nest, and nothing I write will change that. So the choice was b
 
 If you're building any kind of converter, list the impossible cases early and give each one a named fallback in code. If you don't, the loss still happens, just quietly, in the middle of some regex you wrote three months ago.
 
-* Every Shortcut Comes Back to Collect
+* Every shortcut comes back to collect
 
 Remember the placeholders? Anything inside one is text pandoc never sees. Which means that any =**bold**= hiding in there never gets converted either.
 
@@ -203,9 +203,9 @@ So I ended up writing a small Markdown-to-Org converter after all, the thing I'd
 
 The lesson I took from it: when you route around a tool for part of your content, you now own that part. Better to notice that on purpose than two weeks later.
 
-* Read the Seams
+* Read the seams
 
-The most useful thing I built wasn't a feature. It was a debug log.
+The most useful thing I built was a debug log.
 
 When a pipeline is six text transformations deep, "the output is wrong" is a useless bug report, even when you're reporting it to yourself. So =M-x org-lark-toggle-debug= opens a log that records every step. Here's the export of the doc above:
 
@@ -228,6 +228,6 @@ Nearly every hard bug in this project was found by putting two of these dumps si
 
 * Closing
 
-A format bridge is a negotiation, not a translation. The two sides really can't say all the same things, and pretending they can gives you a tool that works on your test document and mangles everyone else's.
+A format bridge is a negotiation between two sides that really can't say all the same things. Pretending they can gives you a tool that works on your test document and mangles everyone else's.
 
 What makes it workable is being honest every place something gets lost. Write a block's identity into the file instead of guessing it later. Pick a fallback for each impossible case. Only hide from the converter what you're ready to convert yourself. And log every seam.
