@@ -69,7 +69,7 @@ async function Code({ children, className, ...props }) {
             lang: language,
             themes: {
                 light: "github-light",
-                dark: "github-dark",
+                dark: "nord",
             },
         });
 

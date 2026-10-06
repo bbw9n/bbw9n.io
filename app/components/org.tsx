@@ -69,7 +69,7 @@ const processor = unified()
     .use(rehypeShiki, {
         themes: {
             light: "github-light",
-            dark: "github-dark",
+            dark: "nord",
         },
         defaultLanguage: "text",
         cssVariablePrefix: "--shiki-",

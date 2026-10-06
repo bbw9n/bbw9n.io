@@ -66,14 +66,14 @@ html .shiki span {
 html.dark .shiki,
 html.dark .shiki span {
     color: var(--shiki-dark) !important;
-    background-color: var(--shiki-dark-bg) !important;
+    background-color: #44545d !important;
 }
 
 @media (prefers-color-scheme: dark) {
     html:not(.light) .shiki,
     html:not(.light) .shiki span {
         color: var(--shiki-dark) !important;
-        background-color: var(--shiki-dark-bg) !important;
+        background-color: #44545d !important;
     }
 }
 
@@ -111,7 +111,7 @@ html {
 }
 
 .prose pre {
-    @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
+    @apply bg-neutral-50 dark:bg-[#44545d] rounded-lg overflow-x-auto border border-neutral-200 dark:border-[#44545d] py-2 px-3 text-sm;
 }
 
 .prose code {
@@ -120,7 +120,7 @@ html {
 
 /* Inline code styling (not inside pre) */
 .prose :not(pre) > code {
-    @apply bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200;
+    @apply bg-neutral-100 dark:bg-[#44545d] text-neutral-800 dark:text-neutral-200;
 }
 
 .prose pre code {
@@ -132,6 +132,12 @@ html {
 .prose img,
 .prose video {
     @apply m-0 w-full rounded-lg;
+}
+
+/* Native player controls: fade to the doom-sora bg instead of black
+   (Chromium/Safari only; Firefox's controls aren't stylable). */
+.dark .prose video::-webkit-media-controls-panel {
+    background-image: linear-gradient(transparent, rgb(60 76 85 / 0.9));
 }
 
 .prose p {
@@ -202,14 +208,14 @@ input[type="email"] {
     display: table;
     max-width: 100%;
     table-layout: fixed;
-    @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg;
+    @apply bg-neutral-50 dark:bg-[#44545d] rounded-lg;
 }
 
 .prose th,
 .prose td {
     @apply px-3 py-2 text-left;
     border-left: 1px solid;
-    @apply border-neutral-200 dark:border-neutral-800;
+    @apply border-neutral-200 dark:border-[#5b6b74];
     word-wrap: break-word;
 }
 
@@ -219,7 +225,7 @@ input[type="email"] {
 }
 
 .prose th {
-    @apply font-medium border-b border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800;
+    @apply font-medium border-b border-neutral-300 dark:border-[#5b6b74] bg-neutral-100 dark:bg-[#44545d];
 }
 
 .prose figcaption a p {

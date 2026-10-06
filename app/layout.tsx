@@ -46,7 +46,7 @@ export default function RootLayout({
         <html
             lang="en"
             suppressHydrationWarning
-            className={cx("text-black bg-white dark:text-white dark:bg-black")}
+            className={cx("text-black bg-white dark:text-white dark:bg-[#3c4c55]")}
         >
             <body className="antialiased max-w-3xl mx-4 mt-8 lg:mx-auto">
                 <ThemeScript />

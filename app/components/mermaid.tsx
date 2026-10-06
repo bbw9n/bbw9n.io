@@ -17,19 +17,19 @@ function scale(prefix: "cScale" | "cScaleLabel", color: string) {
 function mermaidThemeVariables(isDark: boolean) {
     if (isDark) {
         return {
-            primaryColor: "#2b2b2b",
-            primaryTextColor: "#e5e5e5",
-            primaryBorderColor: "#555555",
-            lineColor: "#666666",
-            secondaryColor: "#2b2b2b",
-            tertiaryColor: "#222222",
-            textColor: "#e5e5e5",
-            mainBkg: "#2b2b2b",
-            nodeBorder: "#555555",
-            git0: "#4a4a4a",
-            gitBranchLabel0: "#e5e5e5",
-            ...scale("cScale", "#2b2b2b"),
-            ...scale("cScaleLabel", "#cfcfcf"),
+            primaryColor: "#3c4c55",
+            primaryTextColor: "#c5c8c6",
+            primaryBorderColor: "#7a8a93",
+            lineColor: "#9aa5ab",
+            secondaryColor: "#3c4c55",
+            tertiaryColor: "#3c4c55",
+            textColor: "#c5c8c6",
+            mainBkg: "#3c4c55",
+            nodeBorder: "#7a8a93",
+            git0: "#5b6b74",
+            gitBranchLabel0: "#c5c8c6",
+            ...scale("cScale", "#3c4c55"),
+            ...scale("cScaleLabel", "#c5c8c6"),
         };
     }
     return {
@@ -111,7 +111,18 @@ async function renderExcalidrawSvg(
     const { elements, files } = await parseMermaidToExcalidraw(chart, {
         themeVariables: { fontSize: "16px" },
     });
-    const excalidrawElements = convertToExcalidrawElements(elements);
+    let excalidrawElements = convertToExcalidrawElements(elements);
+    // Dark mode: recolor to the doom-sora palette (fg ink, page-bg fills on
+    // the bg-alt card) rather than Excalidraw's invert filter, which turns
+    // light fills near-black.
+    if (isDark) {
+        excalidrawElements = excalidrawElements.map((el) => ({
+            ...el,
+            strokeColor: "#c5c8c6",
+            backgroundColor:
+                el.backgroundColor === "transparent" ? "transparent" : "#3c4c55",
+        }));
+    }
     const svgEl = await exportToSvg({
         elements: excalidrawElements,
         files: files ?? null,
@@ -122,9 +133,8 @@ async function renderExcalidrawSvg(
         skipInliningFonts: true,
         appState: {
             exportBackground: false,
-            // In dark mode, invert strokes/text to light so they read on the
-            // dark card instead of the default near-black ink.
-            exportWithDarkMode: isDark,
+            // Dark mode is handled by recoloring the elements above.
+            exportWithDarkMode: false,
         },
     });
 
@@ -206,7 +216,7 @@ export function Mermaid({ chart }: { chart: string }) {
     return (
         <div
             ref={containerRef}
-            className="my-6 flex justify-center overflow-x-auto rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900"
+            className="my-6 flex justify-center overflow-x-auto rounded-lg bg-neutral-100 p-4 dark:bg-[#44545d]"
             dangerouslySetInnerHTML={{ __html: svg }}
         />
     );
