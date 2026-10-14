@@ -1,10 +1,10 @@
-#+TITLE: Lark.el, Bringing Work Context to the Agent
+#+TITLE: elark, Bringing Work Context to the Agent
 #+DATE: 2026-05-07
-#+SUMMARY: Today's agents are limited more by what they know than by what they can do. Notes on rebuilding lark.el as a context layer instead of a Lark client, the provider pattern that came out of it, and what makes an agent feel native to Emacs.
+#+SUMMARY: Today's agents are limited more by what they know than by what they can do. Notes on rebuilding elark as a context layer instead of a Lark client, the provider pattern that came out of it, and what makes an agent feel native to Emacs.
 
 I spend most of my work day in Emacs and most of my work /life/ in Lark (Feishu). For a long time the two barely overlapped: docs lived in the browser, chats in the desktop app, my calendar somewhere else. So I started building an Emacs client for Lark. About a third of the way in, I decided that client wasn't worth building.
 
-This post covers what =lark.el= became instead, why, and the design ideas I picked up along the way.
+This post covers what [[https://github.com/bbw9n/elark][=elark=]] became instead, why, and the design ideas I picked up along the way.
 
 * What the project is about
 
@@ -16,7 +16,7 @@ First, Lark already has desktop, mobile, and web clients that handle push notifi
 
 Second, LLMs weakened the case for a thick client. Once Sonnet-class models could drive a CLI competently, a polished UI for /browsing/ Lark mattered much less, and a terse, structured context layer that an agentic LLM can read and act on mattered much more. Emacs is unusually good at being that layer because everything in it is text, and text is what LLMs eat.
 
-So =lark.el= pivoted from "Lark client in Emacs" to "bring work context close to an agentic LLM, so it can connect the dots across your day-to-day work."
+So =elark= pivoted from "Lark client in Emacs" to "bring work context close to an agentic LLM, so it can connect the dots across your day-to-day work."
 
 #+begin_quote
 One practical note: the whole thing sits on top of [[https://github.com/larksuite/cli][=lark-cli=]], the official Lark command-line tool. Because it wraps a CLI instead of the Open API, the Elisp side never deals with OAuth, region routing, retries, or schema drift. (The CLI's output drifted quite often in its early versions.)
@@ -32,11 +32,11 @@ Once I started using the AI layer for real work, I learned quickly that today's 
 
 For everyday productivity work (switching between projects, prepping meetings, following up on threads), bigger models don't help much. What helps is giving the agent the same dots /you/ are connecting in your head. "Draft a reply to this message" gets a much better answer when the agent also has the chat history, the project it's about, the doc you both edited last week, and the PR the other person was reviewing yesterday. The model is the same in both cases; only the information differs.
 
-A good agent on a great context layer beats a great agent on nothing. That idea reoriented the whole project: the AI features in =lark.el= exist mostly to feed the agent context, in shapes it can act on, before any synthesis happens. The same model that looks brilliant with the right snippets in front of it looks generic without them, so I spend more effort on the facts it gets than on the prompt.
+A good agent on a great context layer beats a great agent on nothing. That idea reoriented the whole project: the AI features in =elark= exist mostly to feed the agent context, in shapes it can act on, before any synthesis happens. The same model that looks brilliant with the right snippets in front of it looks generic without them, so I spend more effort on the facts it gets than on the prompt.
 
 * Context as a graph of domain providers
 
-In code, this is a small module I call the /context graph/. Given a topic string, it runs every registered provider (one per Lark domain) concurrently and stitches their results into one markdown blob for the model to synthesise. =lark-ai-brief-on= is the first workflow built on it: "brief me on the Q3 migration" pulls the matching docs and the chat threads that mention it, and hands the model both at once.
+In code, this is a small module I call the /context graph/. Given a topic string, it runs every registered provider (one per Lark domain) concurrently and stitches their results into one markdown blob for the model to synthesise. =elark-ai-brief-on= is the first workflow built on it: "brief me on the Q3 migration" pulls the matching docs and the chat threads that mention it, and hands the model both at once.
 
 Three properties made it work:
 
@@ -58,7 +58,7 @@ It writes results into Emacs surfaces. The AI front end is a comint-style shell 
 
 Its tools are specific to Lark's domains. The agent has no =Bash= tool for typing arbitrary shell commands. Each action it emits is a single =lark-cli= command against a domain, such as =docs +create=, =im +messages-reply=, or =calendar +update=. Before the loop starts, a cheap router call picks which of =lark-cli='s =SKILL.md= files the request needs, so the prompt only carries the relevant domains. Commands with side effects ask for confirmation by default, and long content arguments (a multi-KB doc body, a long reply) are clipped to a one-line preview so the buffer doesn't drown in body text.
 
-It fits alongside your other tools. The ReAct loop belongs to lark.el, but the model behind it is pluggable. The default backend drives a locally installed agent, Claude Code or Gemini CLI, over the [[https://agentclientprotocol.com][Agent Client Protocol]] via [[https://github.com/xenodium/acp.el][=acp.el=]], the same plumbing =agent-shell= uses. You don't need an API key because the agent's own login is reused. The twist is that lark.el switches off the agent's own agency: it advertises no file-system capabilities, auto-declines permission requests, and replaces the agent's system prompt with its own, so the agent works purely as a text engine inside lark's loop. [[https://github.com/karthink/gptel][=gptel=]] and a raw OpenAI-compatible endpoint are there as alternatives. The Lark domains also have their own buffers and keybindings (=C-c l a=, =C-c l m=, =C-c l e=) that work without the agent at all; the agent is one more way to act on the same data.
+It fits alongside your other tools. The ReAct loop belongs to elark, but the model behind it is pluggable. The default backend drives a locally installed agent, Claude Code or Gemini CLI, over the [[https://agentclientprotocol.com][Agent Client Protocol]] via [[https://github.com/xenodium/acp.el][=acp.el=]], the same plumbing =agent-shell= uses. You don't need an API key because the agent's own login is reused. The twist is that elark switches off the agent's own agency: it advertises no file-system capabilities, auto-declines permission requests, and replaces the agent's system prompt with its own, so the agent works purely as a text engine inside elark's loop. [[https://github.com/karthink/gptel][=gptel=]] and a raw OpenAI-compatible endpoint are there as alternatives. The Lark domains also have their own buffers and keybindings (=C-c l a=, =C-c l m=, =C-c l e=) that work without the agent at all; the agent is one more way to act on the same data.
 
 That's what I mean by an agent that acts: every interaction is a real operation against a real domain. The chat surface is useful for free-form prompts and history, but what I care about is the result: a doc created, a message replied to, a brief assembled, a meeting prepped.
 
